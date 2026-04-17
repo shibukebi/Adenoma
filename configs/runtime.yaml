@@ -1,0 +1,72 @@
+project:
+  project_root: /data15/data15_5/yuexin2/adenoma_agent
+  adenoma_root: /data15/data15_5/yuexin2/adenoma
+  artifacts_root: /data15/data15_5/yuexin2/adenoma_agent/artifacts
+data:
+  manifest_csv: /data15/data15_5/yuexin2/adenoma/data/adenoma_yx_manifest.csv
+  labels_csv: /data15/data15_5/yuexin2/adenoma/data/adenoma_yx_labels.csv
+  proxy_task: ssa_vs_others
+  binary_positive_label: Sessile serrated adenoma
+  pilot_root: /data15/data15_5/yuexin2/adenoma_agent/artifacts/pilot_subsets
+paths:
+  clam_python: /data15/data15_5/yuexin2/anaconda3/envs/clam_latest/bin/python
+  patho_r1_python: /data15/data15_5/yuexin2/anaconda3/envs/patho-r1/bin/python
+  route_c_select_script: /data15/data15_5/yuexin2/adenoma/scripts/patho_r1_route_c_select.py
+  route_c_boxes_to_h5_script: /data15/data15_5/yuexin2/adenoma/scripts/route_c_boxes_to_h5.py
+  export_patch_samples_script: /data15/data15_5/yuexin2/adenoma/scripts/export_patch_samples.py
+  patho_r1_patch_qa_script: /data15/data15_5/yuexin2/adenoma/scripts/run_patho_r1_qa.py
+  crop_helper_script: /data15/data15_5/yuexin2/adenoma_agent/src/adenoma_agent/helpers/export_navigation_crops.py
+models:
+  patho_r1_model_id: WenchuanZhang/Patho-R1-3B
+  patho_r1_cache_dir: /data15/data15_5/yuexin2/adenoma/models/hf_cache
+backends:
+  external_command:
+    enabled: false
+    command_prefix: []
+  local_patho_r1:
+    enabled: false
+    max_new_tokens: 256
+trace:
+  preferred_mode: auto
+  thumbnail_max_size: 2048
+  score_threshold: 1
+  cluster_grid_size: 16
+  min_cell_tissue_fraction: 0.08
+  min_cluster_area_fraction: 0.01
+  backend_chain:
+    - external_command
+    - heuristic
+  labels:
+    - ssa_suspicious_mucosa
+    - non_ssa_mucosa
+    - background
+    - artifact
+navigate:
+  coordinate_mode: level0
+  overlap_threshold: 0.30
+  magnification_schedule:
+    - 1.0
+    - 2.5
+    - 5.0
+  backend_chain:
+    - external_command
+    - heuristic
+observe:
+  report_language: en
+  backend_chain:
+    - external_command
+    - local_patho_r1
+    - heuristic
+  patho_r1_question: "Describe this pathology crop for SSA triage. Focus on serration extending to crypt base, mucus cap, abnormal maturation, basal dilatation, crypt branching, horizontal growth, and boot/L/T-shaped crypts. Respond briefly."
+  criteria:
+    - basal_dilatation
+    - crypt_branching
+    - horizontal_growth
+    - boot_l_t_shaped_crypt
+    - serration_to_base
+    - mucus_cap
+    - abnormal_maturation
+cache:
+  thumbnail_cache_root: /data15/data15_5/yuexin2/adenoma_agent/artifacts/cache/thumbnail
+  trace_cache_root: /data15/data15_5/yuexin2/adenoma_agent/artifacts/cache/trace
+  description_cache_root: /data15/data15_5/yuexin2/adenoma_agent/artifacts/cache/observe

@@ -1,0 +1,24 @@
+tasks:
+  - scale: wsi
+    task_type: ssa_vs_others_huge_region_agent
+    input_unit: whole_slide
+    output_unit: trace_clusters_navigation_report_and_audit
+    status: mvp_active
+    notes: "CPathAgent-style Trace, Navigate, Observe/Reason pipeline for SSA vs others."
+  - scale: region
+    task_type: crypt_risk_navigation
+    input_unit: mucosal_region_cluster
+    output_unit: x_y_m_o_trajectory
+    status: mvp_active
+    notes: "Each cluster emits l_k, s_k, d_k and a clinically guided review path."
+  - scale: patch
+    task_type: multi_view_reasoning
+    input_unit: navigation_crop_sequence
+    output_unit: english_step_log_and_pathological_report
+    status: mvp_active
+    notes: "Observation, reasoning, next-step, checklist, and final SSA judgement."
+future_tasks:
+  - vqa_multiscale
+  - slidebench_vqa
+  - pathmmu_hr2
+  - pixel_mask_refinement

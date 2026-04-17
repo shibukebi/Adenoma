@@ -1,0 +1,13 @@
+baselines:
+  - name: mil
+    status: future
+    description: "Traditional MIL baseline from the existing downstream modeling stack."
+  - name: single_shot_vlm
+    status: future
+    description: "Single-pass LMM or VLM inference without navigation."
+  - name: no_navigate
+    status: future
+    description: "Trace candidates passed directly to observation without trajectory planning."
+mvp_reference:
+  name: rule_based_agent
+  description: "Route C trace selection plus rule-based navigation and heuristic observation."

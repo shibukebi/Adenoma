@@ -1,0 +1,34 @@
+metrics:
+  primary:
+    - name: ssa_binary_accuracy
+      description: "Case-level SSA vs others accuracy on aligned labels.csv cases."
+    - name: ssa_recall
+      description: "Sensitivity for the positive SSA class."
+    - name: ssa_specificity
+      description: "Specificity for the negative others class."
+    - name: trace_cluster_count
+      description: "Number of retained trace clusters per case."
+    - name: trajectory_length
+      description: "Number of navigation steps excluding END."
+    - name: case_runtime_ms
+      description: "End-to-end runtime for a case."
+    - name: report_checklist_completeness
+      description: "Fraction of SSA checklist criteria assigned a non-empty status."
+  secondary:
+    - name: cache_hit_rate
+      description: "Fraction of adapter or description requests served from cache."
+    - name: audit_warning_count
+      description: "Count of warnings raised by the audit stage."
+    - name: replay_completeness
+      description: "Whether a run can be reconstructed from its JSONL log."
+    - name: average_step_latency_ms
+      description: "Mean per-step observation latency."
+    - name: estimated_case_cost_units
+      description: "Proxy cost from trace attempts and observation steps."
+future_metrics:
+  - evidence_completeness
+  - human_review_pass_rate
+  - slidebench_vqa_accuracy
+  - pathmmu_hr2_accuracy
+  - dice
+  - iou
