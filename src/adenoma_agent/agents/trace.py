@@ -43,7 +43,7 @@ class TraceAgent(object):
                 "images": [str(thumbnail_path)],
                 "prompt": {
                     "question": case_spec.question,
-                    "task": "ssa_vs_others_trace_annotation",
+                    "task": "serrated_ssl_dysplasia_trace_annotation",
                 },
                 "metadata": {
                     "case_id": case_spec.case_id,
@@ -67,6 +67,9 @@ class TraceAgent(object):
                     l=cluster_payload["l"],
                     s=int(cluster_payload["s"]),
                     d=bool(cluster_payload["d"]),
+                    review_stage=cluster_payload["review_stage"],
+                    crypt_disorder_risk=int(cluster_payload["crypt_disorder_risk"]),
+                    dysplasia_review_needed=bool(cluster_payload["dysplasia_review_needed"]),
                     desc=cluster_payload["desc"],
                     evidence=list(cluster_payload.get("evidence", [])),
                     metadata={

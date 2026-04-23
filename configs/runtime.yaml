@@ -5,8 +5,16 @@ project:
 data:
   manifest_csv: /data15/data15_5/yuexin2/adenoma/data/adenoma_yx_manifest.csv
   labels_csv: /data15/data15_5/yuexin2/adenoma/data/adenoma_yx_labels.csv
-  proxy_task: ssa_vs_others
-  binary_positive_label: Sessile serrated adenoma
+  proxy_task: serrated_ssl_dysplasia_hierarchy
+  serrated_labels:
+    - Hyperplastic polyps
+    - Sessile serrated adenoma
+    - Traditional serrated adenoma
+    - Unclassified serrated adenoma
+  ssl_like_positive_labels:
+    - Sessile serrated adenoma
+  dysplasia_positive_grades:
+    - high
   pilot_root: /data15/data15_5/yuexin2/adenoma_agent/artifacts/pilot_subsets
 paths:
   clam_python: /data15/data15_5/yuexin2/anaconda3/envs/clam_latest/bin/python
@@ -19,12 +27,14 @@ paths:
 models:
   patho_r1_model_id: WenchuanZhang/Patho-R1-3B
   patho_r1_cache_dir: /data15/data15_5/yuexin2/adenoma/models/hf_cache
+execution:
+  patho_r1_cuda_visible_devices: "5"
 backends:
   external_command:
     enabled: false
     command_prefix: []
   local_patho_r1:
-    enabled: false
+    enabled: true
     max_new_tokens: 256
 trace:
   preferred_mode: auto
@@ -37,8 +47,8 @@ trace:
     - external_command
     - heuristic
   labels:
-    - ssa_suspicious_mucosa
-    - non_ssa_mucosa
+    - serrated_suspicious_mucosa
+    - non_serrated_mucosa
     - background
     - artifact
 navigate:
@@ -57,8 +67,12 @@ observe:
     - external_command
     - local_patho_r1
     - heuristic
-  patho_r1_question: "Describe this pathology crop for SSA triage. Focus on serration extending to crypt base, mucus cap, abnormal maturation, basal dilatation, crypt branching, horizontal growth, and boot/L/T-shaped crypts. Respond briefly."
-  criteria:
+  patho_r1_question: "Describe this pathology crop using a layered serrated workflow. First assess whether the lesion looks serrated, then comment on SSL-like crypt architecture, and finally comment on dysplasia or atypia at high magnification. Respond briefly."
+  serrated_criteria:
+    - serrated_surface_pattern
+    - mucus_rich_surface
+    - serrated_lesion_context
+  ssl_like_criteria:
     - basal_dilatation
     - crypt_branching
     - horizontal_growth
@@ -66,6 +80,11 @@ observe:
     - serration_to_base
     - mucus_cap
     - abnormal_maturation
+  dysplasia_criteria:
+    - nuclear_enlargement_stratification
+    - hyperchromasia
+    - mitotic_activity_atypia
+    - architectural_crowding
 cache:
   thumbnail_cache_root: /data15/data15_5/yuexin2/adenoma_agent/artifacts/cache/thumbnail
   trace_cache_root: /data15/data15_5/yuexin2/adenoma_agent/artifacts/cache/trace

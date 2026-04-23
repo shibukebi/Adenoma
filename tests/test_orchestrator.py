@@ -22,20 +22,23 @@ class _FakeTraceAgent(object):
         write_json(boxes_json, payload)
         from adenoma_agent.schemas import TraceCluster
 
-        candidate = TraceCluster(
+        cluster = TraceCluster(
             cluster_id="cluster_00",
             cluster_bbox_thumb={"x1": 100, "y1": 50, "x2": 300, "y2": 250},
             cluster_bbox_level0={"x1": 400, "y1": 200, "x2": 1200, "y2": 1000},
             regions_thumb=[{"x1": 100, "y1": 50, "x2": 300, "y2": 250}],
             regions_level0=[{"x1": 400, "y1": 200, "x2": 1200, "y2": 1000}],
-            l="ssa_suspicious_mucosa",
+            l="serrated_suspicious_mucosa",
             s=4,
             d=True,
-            desc="roi",
+            review_stage="serrated_lesion_screening",
+            crypt_disorder_risk=4,
+            dysplasia_review_needed=True,
+            desc="trace cluster",
             evidence=["crypt-risk prefilter"],
             metadata={"area_fraction": 0.1},
         )
-        logger.log("TRACE", "FakeTraceAgent", output_ref=str(boxes_json), payload={"candidate_count": 1})
+        logger.log("TRACE", "FakeTraceAgent", output_ref=str(boxes_json), payload={"cluster_count": 1})
         return {
             "selection": {
                 "paths": {
@@ -46,7 +49,7 @@ class _FakeTraceAgent(object):
                 "attempts": [],
             },
             "payload": payload,
-            "clusters": [candidate],
+            "clusters": [cluster],
             "trace_clusters_json": trace_dir / "trace_clusters.json",
             "trace_backend_json": trace_dir / "trace_backend_attempts.json",
             "trace_dir": trace_dir,
@@ -63,16 +66,40 @@ class _FakeNavigateAgent(object):
                 x=800,
                 y=600,
                 m=1.0,
-                o="Survey mucosal architecture.",
+                o="Survey serrated lesion context.",
+                review_goal="serrated_lesion_assessment",
+                stage_gate="level_1",
                 metadata={"region_size_level0": 1024, "cluster_id": "cluster_00", "action": "inspect"},
             ),
             NavigationStep(
                 step_id="step_01",
                 x=800,
                 y=600,
+                m=2.5,
+                o="Inspect SSL-like crypt architecture.",
+                review_goal="ssl_like_architecture_assessment",
+                stage_gate="level_2",
+                metadata={"region_size_level0": 512, "cluster_id": "cluster_00", "action": "inspect"},
+            ),
+            NavigationStep(
+                step_id="step_02",
+                x=800,
+                y=600,
+                m=5.0,
+                o="Inspect dysplasia or atypia at high magnification.",
+                review_goal="dysplasia_assessment",
+                stage_gate="level_3",
+                metadata={"region_size_level0": 256, "cluster_id": "cluster_00", "action": "inspect"},
+            ),
+            NavigationStep(
+                step_id="step_03",
+                x=800,
+                y=600,
                 m=1.0,
                 o="Stop navigation.",
-                metadata={"region_size_level0": 1024, "action": "stop"},
+                review_goal="integrated_impression",
+                stage_gate="end",
+                metadata={"region_size_level0": 256, "action": "stop"},
             ),
         ]
         logger.log("NAVIGATE", "FakeNavigateAgent", output_ref="step_00", payload=steps[0].to_dict())
@@ -91,15 +118,23 @@ class _FakeObserveAgent(object):
         record = ObservationRecord(
             step_id="step_00",
             crop_path=str(Path(case_dir) / "observe" / "step_00.png"),
-            observation="Tissue-rich patch.",
-            reasoning="Supports SSA-oriented review.",
-            next_step="Consolidate the checklist.",
-            criteria_hits={"mucus_cap": "supporting"},
+            observation="Layered review patch.",
+            reasoning="Supports a serrated lesion with SSL-like architecture and no clear dysplasia.",
+            next_step="Consolidate the layered report.",
+            level_1_findings=["serrated_lesion_context"],
+            level_2_findings=["mucus_cap"],
+            level_3_findings=[],
+            stage_decision="supports_ssl_like_architecture",
             confidence=0.8,
-            metadata={"background_fraction": 0.1},
+            metadata={
+                "background_fraction": 0.1,
+                "serrated_hits": {"serrated_lesion_context": "supporting"},
+                "ssl_like_hits": {"mucus_cap": "supporting"},
+                "dysplasia_hits": {"hyperchromasia": "uncertain"},
+            },
         )
         reasoning = ReasoningState(
-            hypotheses=["ssa_vs_others_pathological_report_ready"],
+            hypotheses=["serrated_ssl_dysplasia_report_ready"],
             supporting_evidence=[record.reasoning],
             conflicts=[],
             stop_reason="trajectory_complete",
@@ -109,9 +144,16 @@ class _FakeObserveAgent(object):
         return {
             "records": [record],
             "reasoning_state": reasoning,
-            "report": "Pathological Report\n\nFinal SSA vs others judgement: SSA",
-            "report_checklist": {"mucus_cap": {"status": "supporting", "evidence_steps": ["step_00"]}},
-            "final_binary_prediction": {"label": "SSA", "positive": True, "score": 0.8},
+            "hierarchical_prediction": {
+                "serrated_lesion_assessment": {"label": "serrated_lesion", "positive": True, "score": 0.9},
+                "ssl_like_architecture_assessment": {"label": "ssl_like_supported", "positive": True, "score": 0.8},
+                "dysplasia_assessment": {"label": "dysplasia_not_supported", "positive": False, "score": 0.2},
+                "integrated_impression": "Serrated lesion with SSL-like architecture and no supported dysplasia.",
+            },
+            "serrated_checklist": {"serrated_lesion_context": {"status": "supporting", "evidence_steps": ["step_00"]}},
+            "ssl_like_crypt_checklist": {"mucus_cap": {"status": "supporting", "evidence_steps": ["step_00"]}},
+            "dysplasia_checklist": {"hyperchromasia": {"status": "uncertain", "evidence_steps": ["step_00"]}},
+            "integrated_report": "Integrated report",
             "report_json": Path(case_dir) / "observe" / "pathological_report.json",
         }
 
@@ -122,10 +164,14 @@ class _FakeAuditAgent(object):
 
         return CaseResult(
             case_id=case_spec.case_id,
-            binary_target=case_spec.binary_target,
-            final_binary_prediction=observe_result["final_binary_prediction"],
-            report_checklist=observe_result["report_checklist"],
-            pathological_report=observe_result["report"],
+            serrated_target=case_spec.serrated_target,
+            ssl_like_target=case_spec.ssl_like_target,
+            dysplasia_proxy_target=case_spec.dysplasia_proxy_target,
+            hierarchical_prediction=observe_result["hierarchical_prediction"],
+            serrated_checklist=observe_result["serrated_checklist"],
+            ssl_like_crypt_checklist=observe_result["ssl_like_crypt_checklist"],
+            dysplasia_checklist=observe_result["dysplasia_checklist"],
+            integrated_report=observe_result["integrated_report"],
             segmentation_artifact=segmentation_artifact,
             trace_clusters=[cluster.to_dict() for cluster in trace_result["clusters"]],
             trajectory=[step.to_dict() for step in navigation_result["steps"]],
@@ -136,7 +182,12 @@ class _FakeAuditAgent(object):
                 "status": "ok",
                 "warnings": [],
                 "errors": [],
-                "metrics": {"trajectory_length": 1, "report_checklist_completeness": 1.0},
+                "metrics": {
+                    "trajectory_length": 3,
+                    "serrated_checklist_completeness": 1.0,
+                    "ssl_like_checklist_completeness": 1.0,
+                    "dysplasia_checklist_completeness": 1.0,
+                },
             },
             label=case_spec.label,
             status="ok",
@@ -175,7 +226,9 @@ class OrchestratorIntegrationTest(unittest.TestCase):
                     "trace_cache_root": "/tmp/adenoma_agent_test/cache/trace",
                     "description_cache_root": "/tmp/adenoma_agent_test/cache/desc",
                 },
-                "data": {"binary_positive_label": "Sessile serrated adenoma"},
+                "data": {
+                    "serrated_labels": ["Hyperplastic polyps", "Sessile serrated adenoma"],
+                },
             },
             "budget": {"max_retries_per_stage": 0},
         }
@@ -190,10 +243,12 @@ class OrchestratorIntegrationTest(unittest.TestCase):
         case_spec = CaseSpec(
             case_id="case_001",
             slide_path="/tmp/case_001.svs",
-            task_type="ssa_vs_others_huge_region_agent",
-            question="Review for SSA vs others.",
+            task_type="serrated_ssl_dysplasia_huge_region_agent",
+            question="Review with layered serrated workflow.",
             label="Hyperplastic polyps",
-            binary_target=0,
+            serrated_target=1,
+            ssl_like_target=0,
+            dysplasia_proxy_target=0,
             metadata={},
         )
 

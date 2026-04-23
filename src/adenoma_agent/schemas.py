@@ -9,7 +9,9 @@ class CaseSpec:
     task_type: str
     question: str
     label: Optional[str] = None
-    binary_target: Optional[int] = None
+    serrated_target: Optional[int] = None
+    ssl_like_target: Optional[int] = None
+    dysplasia_proxy_target: Optional[int] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self):
@@ -26,6 +28,9 @@ class TraceCluster:
     l: str
     s: int
     d: bool
+    review_stage: str
+    crypt_disorder_risk: int
+    dysplasia_review_needed: bool
     desc: str
     evidence: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -41,6 +46,8 @@ class NavigationStep:
     y: int
     m: float
     o: str
+    review_goal: str
+    stage_gate: str
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self):
@@ -54,7 +61,10 @@ class ObservationRecord:
     observation: str
     reasoning: str
     next_step: str
-    criteria_hits: Dict[str, str]
+    level_1_findings: List[str]
+    level_2_findings: List[str]
+    level_3_findings: List[str]
+    stage_decision: str
     confidence: float
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -99,10 +109,14 @@ class AuditReport:
 @dataclass
 class CaseResult:
     case_id: str
-    binary_target: Optional[int]
-    final_binary_prediction: Dict[str, Any]
-    report_checklist: Dict[str, Any]
-    pathological_report: str
+    serrated_target: Optional[int]
+    ssl_like_target: Optional[int]
+    dysplasia_proxy_target: Optional[int]
+    hierarchical_prediction: Dict[str, Any]
+    serrated_checklist: Dict[str, Any]
+    ssl_like_crypt_checklist: Dict[str, Any]
+    dysplasia_checklist: Dict[str, Any]
+    integrated_report: str
     segmentation_artifact: Dict[str, Any]
     trace_clusters: List[Dict[str, Any]]
     trajectory: List[Dict[str, Any]]

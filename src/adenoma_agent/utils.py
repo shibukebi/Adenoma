@@ -162,6 +162,18 @@ def binary_label_from_type(label, positive_label):
     return 1 if label == positive_label else 0
 
 
+def membership_label_from_type(label, positive_labels):
+    if label is None:
+        return None
+    return 1 if label in set(positive_labels) else 0
+
+
+def binary_label_from_grade(grade, positive_grades):
+    if grade is None:
+        return None
+    return 1 if grade in set(positive_grades) else 0
+
+
 def connected_components_from_grid(active_grid):
     height = len(active_grid)
     width = len(active_grid[0]) if height else 0
@@ -187,8 +199,24 @@ def connected_components_from_grid(active_grid):
     return components
 
 
-def run_command(command, timeout=None, cwd=None):
+def env_with_cuda_visible_devices(value):
+    if value is None:
+        return None
+    value = str(value).strip()
+    if not value:
+        return None
+    return {"CUDA_VISIBLE_DEVICES": value}
+
+
+def run_command(command, timeout=None, cwd=None, env_overrides=None):
     started = time.time()
+    env = None
+    if env_overrides:
+        env = os.environ.copy()
+        for key, value in env_overrides.items():
+            if value is None:
+                continue
+            env[str(key)] = str(value)
     completed = subprocess.run(
         command,
         cwd=cwd,
@@ -196,6 +224,7 @@ def run_command(command, timeout=None, cwd=None):
         text=True,
         timeout=timeout,
         check=False,
+        env=env,
     )
     latency_ms = int(round((time.time() - started) * 1000.0))
     return {

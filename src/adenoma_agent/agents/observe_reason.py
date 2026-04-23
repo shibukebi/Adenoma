@@ -32,6 +32,7 @@ class ObserveReasonAgent(object):
             image_stats = self._image_stats(crop["image_path"])
             cache_payload = {
                 "case_id": case_spec.case_id,
+                "agent_version": "hierarchical_v2",
                 "step_id": step.step_id,
                 "m": step.m,
                 "cluster_id": step.metadata.get("cluster_id"),
@@ -39,6 +40,8 @@ class ObserveReasonAgent(object):
                 "backend_chain": self.bundle["runtime"]["observe"]["backend_chain"],
             }
             cached = self.description_cache.load("observe_step", cache_payload, "record.json")
+            if cached is not None and "level_1_findings" not in cached:
+                cached = None
             if cached is None:
                 backend_response = self.backend_chain.invoke(
                     "observe_step",
@@ -72,7 +75,10 @@ class ObserveReasonAgent(object):
                 observation=payload["observation"],
                 reasoning=payload["reasoning"],
                 next_step=payload["next_step"],
-                criteria_hits=payload["criteria_hits"],
+                level_1_findings=payload["level_1_findings"],
+                level_2_findings=payload["level_2_findings"],
+                level_3_findings=payload["level_3_findings"],
+                stage_decision=payload["stage_decision"],
                 confidence=float(payload["confidence"]),
                 metadata={
                     "backend": payload.get("backend"),
@@ -82,6 +88,11 @@ class ObserveReasonAgent(object):
                     "cluster_id": step.metadata.get("cluster_id"),
                     "magnification": step.m,
                     "need_to_see": step.o,
+                    "review_goal": step.review_goal,
+                    "stage_gate": step.stage_gate,
+                    "serrated_hits": payload.get("serrated_hits", {}),
+                    "ssl_like_hits": payload.get("ssl_like_hits", {}),
+                    "dysplasia_hits": payload.get("dysplasia_hits", {}),
                 },
             )
             records.append(record)
@@ -102,8 +113,8 @@ class ObserveReasonAgent(object):
             {
                 "images": [],
                 "prompt": {
-                    "question": "Synthesize the SSA checklist and produce a final pathological report.",
-                    "task": "ssa_observe_reason_report",
+                    "question": "Synthesize a layered serrated lesion report with serrated lesion, SSL-like architecture, and dysplasia sections.",
+                    "task": "serrated_ssl_dysplasia_report",
                 },
                 "metadata": {
                     "case_id": case_spec.case_id,
@@ -113,7 +124,7 @@ class ObserveReasonAgent(object):
             },
         )
         reasoning_state = ReasoningState(
-            hypotheses=["ssa_vs_others_pathological_report_ready"],
+            hypotheses=["serrated_ssl_dysplasia_report_ready"],
             supporting_evidence=support_summaries[:8],
             conflicts=conflicts,
             stop_reason="trajectory_completed",
@@ -126,9 +137,11 @@ class ObserveReasonAgent(object):
         report_json = write_json(
             observe_dir / "pathological_report.json",
             {
-                "pathological_report": report_response["output"]["pathological_report"],
-                "report_checklist": report_response["output"]["report_checklist"],
-                "final_binary_prediction": report_response["output"]["final_binary_prediction"],
+                "hierarchical_prediction": report_response["output"]["hierarchical_prediction"],
+                "serrated_checklist": report_response["output"]["serrated_checklist"],
+                "ssl_like_crypt_checklist": report_response["output"]["ssl_like_crypt_checklist"],
+                "dysplasia_checklist": report_response["output"]["dysplasia_checklist"],
+                "integrated_report": report_response["output"]["integrated_report"],
                 "backend_attempts": report_response["attempts"],
             },
         )
@@ -141,9 +154,11 @@ class ObserveReasonAgent(object):
             "reasoning_json": reasoning_json,
             "crop_manifest_json": export_result["manifest_json"],
             "crop_result": export_result["result"],
-            "report": report_response["output"]["pathological_report"],
-            "report_checklist": report_response["output"]["report_checklist"],
-            "final_binary_prediction": report_response["output"]["final_binary_prediction"],
+            "hierarchical_prediction": report_response["output"]["hierarchical_prediction"],
+            "serrated_checklist": report_response["output"]["serrated_checklist"],
+            "ssl_like_crypt_checklist": report_response["output"]["ssl_like_crypt_checklist"],
+            "dysplasia_checklist": report_response["output"]["dysplasia_checklist"],
+            "integrated_report": report_response["output"]["integrated_report"],
             "report_backend_attempts": report_response["attempts"],
         }
 

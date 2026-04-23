@@ -36,6 +36,8 @@ class NavigateAgent(object):
                 y=int(payload["y"]),
                 m=float(payload["m"]),
                 o=payload["o"],
+                review_goal=payload["review_goal"],
+                stage_gate=payload["stage_gate"],
                 metadata=payload.get("metadata", {}),
             )
             steps.append(step)

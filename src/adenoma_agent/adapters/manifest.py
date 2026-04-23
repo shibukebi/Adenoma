@@ -1,12 +1,26 @@
 from adenoma_agent.schemas import CaseSpec
-from adenoma_agent.utils import binary_label_from_type, read_csv_rows, write_json
+from adenoma_agent.utils import (
+    binary_label_from_grade,
+    membership_label_from_type,
+    read_csv_rows,
+    write_json,
+)
 
 
 class AdenomaManifestAdapter(object):
-    def __init__(self, manifest_csv, labels_csv, positive_label="Sessile serrated adenoma"):
+    def __init__(
+        self,
+        manifest_csv,
+        labels_csv,
+        serrated_labels=None,
+        ssl_like_positive_labels=None,
+        dysplasia_positive_grades=None,
+    ):
         self.manifest_csv = manifest_csv
         self.labels_csv = labels_csv
-        self.positive_label = positive_label
+        self.serrated_labels = tuple(serrated_labels or ())
+        self.ssl_like_positive_labels = tuple(ssl_like_positive_labels or ("Sessile serrated adenoma",))
+        self.dysplasia_positive_grades = tuple(dysplasia_positive_grades or ("high",))
         self._cases = None
 
     def _load(self):
@@ -21,22 +35,24 @@ class AdenomaManifestAdapter(object):
             label_row = labels.get(slide_id, {})
             label = label_row.get("type")
             question = (
-                "Review this whole-slide image for SSA versus others. "
-                "Focus on serration to crypt base, mucus cap, abnormal maturation, basal dilatation, "
-                "crypt branching, horizontal growth, and boot/L/T-shaped crypts."
+                "Review this whole-slide image through a layered serrated workflow. "
+                "First decide whether this is a serrated lesion, then assess whether the crypt architecture supports an SSL-like pattern, "
+                "and finally inspect high-magnification cytology for dysplasia or atypia."
             )
             cases.append(
                 CaseSpec(
                     case_id=slide_id,
                     slide_path=row["slide_path"],
-                    task_type="ssa_vs_others_huge_region_agent",
+                    task_type="serrated_ssl_dysplasia_huge_region_agent",
                     question=question,
                     label=label,
-                    binary_target=binary_label_from_type(label, self.positive_label),
+                    serrated_target=membership_label_from_type(label, self.serrated_labels),
+                    ssl_like_target=membership_label_from_type(label, self.ssl_like_positive_labels),
+                    dysplasia_proxy_target=binary_label_from_grade(label_row.get("grade"), self.dysplasia_positive_grades),
                     metadata={
                         "slide_filename": row.get("slide_filename"),
                         "grade": label_row.get("grade"),
-                        "proxy_task": "ssa_vs_others",
+                        "proxy_task": "serrated_ssl_dysplasia_hierarchy",
                     },
                 )
             )
@@ -54,11 +70,11 @@ class AdenomaManifestAdapter(object):
         raise KeyError("Unknown case_id: {0}".format(case_id))
 
     def build_pilot_subset(self, output_path, positives=12, negatives=12):
-        positive_cases = [case for case in self.list_cases() if case.binary_target == 1]
-        negative_cases = [case for case in self.list_cases() if case.binary_target == 0]
+        positive_cases = [case for case in self.list_cases() if case.serrated_target == 1]
+        negative_cases = [case for case in self.list_cases() if case.serrated_target == 0]
         selected = positive_cases[: int(positives)] + negative_cases[: int(negatives)]
         payload = {
-            "positive_label": self.positive_label,
+            "pilot_target": "serrated_lesion_vs_non_serrated",
             "positives_requested": int(positives),
             "negatives_requested": int(negatives),
             "selected_case_count": len(selected),
@@ -67,7 +83,9 @@ class AdenomaManifestAdapter(object):
                     "case_id": case.case_id,
                     "slide_path": case.slide_path,
                     "label": case.label,
-                    "binary_target": case.binary_target,
+                    "serrated_target": case.serrated_target,
+                    "ssl_like_target": case.ssl_like_target,
+                    "dysplasia_proxy_target": case.dysplasia_proxy_target,
                     "pilot_split": "pilot_eval",
                     "selection_reason": "aligned_manifest_and_labels_csv",
                 }

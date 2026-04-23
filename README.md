@@ -2,14 +2,19 @@
 
 `adenoma_agent` is a companion project for `/data15/data15_5/yuexin2/adenoma`.
 
-This revision focuses on a CPathAgent-style `SSA vs others` WSI workflow for `Adenoma_yx`.
+This revision focuses on a CPathAgent-style hierarchical WSI workflow for `Adenoma_yx`:
+
+- serrated lesion assessment
+- SSL-like crypt architecture assessment
+- dysplasia / atypia assessment
+
 It reuses the existing `adenoma` preprocessing and Route C selection scripts, then adds:
 
 - `Trace -> Navigate -> Observe/Reason -> Audit -> End` orchestration
 - `TraceCluster` outputs with `l_k / s_k / d_k`
 - `(x, y, m, o)` navigation steps
 - English observation logs and checklist-style pathological reports
-- structured JSONL logging, replay, and SSA proxy evaluation
+- structured JSONL logging, replay, and layered proxy evaluation
 
 ## Current MVP Scope
 
@@ -18,11 +23,11 @@ It reuses the existing `adenoma` preprocessing and Route C selection scripts, th
   - trace clusters with `l_k / s_k / d_k`
   - `(x, y, m, o)` navigation trajectory
   - step-level observation and reasoning logs
-  - checklist-style pathological report
-  - `SSA vs others` final prediction
+  - layered checklists for serrated lesion, SSL-like structure, and dysplasia
+  - layered pathological report and integrated impression
   - audit report
 
-The MVP does not claim pixel-level semantic masks. It is an engineering approximation of the paper's WSI agent logic for `SSA vs others`.
+The MVP does not claim pixel-level semantic masks. It is an engineering approximation of the paper's WSI agent logic for serrated lesion triage and layered pathology reasoning.
 
 ## Layout
 

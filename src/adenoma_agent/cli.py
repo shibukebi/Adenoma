@@ -33,7 +33,7 @@ def build_parser():
     run_batch.add_argument("--limit", type=int, default=None)
     run_batch.add_argument("--trace-mode", default=None, choices=["auto", "patho-r1", "heuristic", "manual"])
 
-    build_pilot = subparsers.add_parser("build-pilot", help="Build a deterministic SSA-vs-others pilot subset.")
+    build_pilot = subparsers.add_parser("build-pilot", help="Build a deterministic serrated-vs-non-serrated pilot subset.")
     build_pilot.add_argument("--runtime-config", default=None)
     build_pilot.add_argument("--budget-config", default=None)
     build_pilot.add_argument("--positives", type=int, default=12)
@@ -53,7 +53,9 @@ def load_case_from_args(bundle, args):
     adapter = AdenomaManifestAdapter(
         bundle["runtime"]["data"]["manifest_csv"],
         bundle["runtime"]["data"]["labels_csv"],
-        positive_label=bundle["runtime"]["data"]["binary_positive_label"],
+        serrated_labels=bundle["runtime"]["data"]["serrated_labels"],
+        ssl_like_positive_labels=bundle["runtime"]["data"]["ssl_like_positive_labels"],
+        dysplasia_positive_grades=bundle["runtime"]["data"]["dysplasia_positive_grades"],
     )
     if args.case_id:
         return adapter.get_case(args.case_id)
@@ -63,13 +65,16 @@ def load_case_from_args(bundle, args):
         return CaseSpec(
             case_id=case_id,
             slide_path=slide_path,
-            task_type="ssa_vs_others_huge_region_agent",
+            task_type="serrated_ssl_dysplasia_huge_region_agent",
             question=(
-                "Review this whole-slide image for SSA versus others. Focus on serration to crypt base, mucus cap, "
-                "abnormal maturation, basal dilatation, crypt branching, horizontal growth, and boot/L/T-shaped crypts."
+                "Review this whole-slide image through a layered serrated workflow. First decide whether this is a serrated lesion, "
+                "then assess whether the crypt architecture supports an SSL-like pattern, and finally inspect high-magnification cytology "
+                "for dysplasia or atypia."
             ),
             label=None,
-            binary_target=None,
+            serrated_target=None,
+            ssl_like_target=None,
+            dysplasia_proxy_target=None,
             metadata={},
         )
     raise SystemExit("Either --case-id or --slide-path is required.")
@@ -96,7 +101,9 @@ def command_run_batch(args):
     adapter = AdenomaManifestAdapter(
         bundle["runtime"]["data"]["manifest_csv"],
         bundle["runtime"]["data"]["labels_csv"],
-        positive_label=bundle["runtime"]["data"]["binary_positive_label"],
+        serrated_labels=bundle["runtime"]["data"]["serrated_labels"],
+        ssl_like_positive_labels=bundle["runtime"]["data"]["ssl_like_positive_labels"],
+        dysplasia_positive_grades=bundle["runtime"]["data"]["dysplasia_positive_grades"],
     )
     orchestrator = AdenomaAgentOrchestrator(bundle)
     output_root = ensure_dir(args.output_root)
@@ -127,11 +134,13 @@ def command_build_pilot(args):
     adapter = AdenomaManifestAdapter(
         bundle["runtime"]["data"]["manifest_csv"],
         bundle["runtime"]["data"]["labels_csv"],
-        positive_label=bundle["runtime"]["data"]["binary_positive_label"],
+        serrated_labels=bundle["runtime"]["data"]["serrated_labels"],
+        ssl_like_positive_labels=bundle["runtime"]["data"]["ssl_like_positive_labels"],
+        dysplasia_positive_grades=bundle["runtime"]["data"]["dysplasia_positive_grades"],
     )
     output_json = args.output_json or str(
         Path(bundle["runtime"]["data"]["pilot_root"])
-        / "ssa_vs_others_pilot_p{0}_n{1}.json".format(args.positives, args.negatives)
+        / "serrated_pilot_p{0}_n{1}.json".format(args.positives, args.negatives)
     )
     payload = adapter.build_pilot_subset(output_json, positives=args.positives, negatives=args.negatives)
     print("pilot_subset={0}".format(output_json))

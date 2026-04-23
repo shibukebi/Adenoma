@@ -31,15 +31,28 @@ class ReplayEvalTest(unittest.TestCase):
                 case_dir / "case_result.json",
                 {
                     "status": "warn",
-                    "binary_target": 1,
-                    "final_binary_prediction": {"label": "SSA", "positive": True, "score": 0.8},
-                    "report_checklist": {"mucus_cap": {"status": "supporting", "evidence_steps": ["step_00"]}},
+                    "serrated_target": 1,
+                    "ssl_like_target": 1,
+                    "dysplasia_proxy_target": 0,
+                    "hierarchical_prediction": {
+                        "serrated_lesion_assessment": {"label": "serrated_lesion", "positive": True, "score": 0.9},
+                        "ssl_like_architecture_assessment": {"label": "ssl_like_supported", "positive": True, "score": 0.8},
+                        "dysplasia_assessment": {"label": "dysplasia_not_supported", "positive": False, "score": 0.2},
+                    },
+                    "serrated_checklist": {"serrated_lesion_context": {"status": "supporting", "evidence_steps": ["step_00"]}},
+                    "ssl_like_crypt_checklist": {"mucus_cap": {"status": "supporting", "evidence_steps": ["step_00"]}},
+                    "dysplasia_checklist": {"hyperchromasia": {"status": "uncertain", "evidence_steps": ["step_00"]}},
                     "trace_clusters": [{"cluster_id": "cluster_00"}],
                     "trajectory": [{"step_id": "step_00"}],
                     "audit": {
                         "warnings": ["w"],
                         "errors": [],
-                        "metrics": {"trajectory_length": 3, "report_checklist_completeness": 1.0},
+                        "metrics": {
+                            "trajectory_length": 3,
+                            "serrated_checklist_completeness": 1.0,
+                            "ssl_like_checklist_completeness": 1.0,
+                            "dysplasia_checklist_completeness": 1.0,
+                        },
                     },
                     "timing": {"total_runtime_ms": 100},
                     "cost": {"estimated_case_cost_units": 4},
@@ -51,7 +64,9 @@ class ReplayEvalTest(unittest.TestCase):
             summary = evaluate_run(run_dir)
             self.assertEqual(summary["case_count"], 1)
             self.assertEqual(summary["warn_cases"], 1)
-            self.assertEqual(summary["ssa_binary_accuracy"], 1.0)
+            self.assertEqual(summary["serrated_accuracy"], 1.0)
+            self.assertEqual(summary["ssl_like_accuracy"], 1.0)
+            self.assertEqual(summary["dysplasia_proxy_accuracy"], 1.0)
 
 
 if __name__ == "__main__":

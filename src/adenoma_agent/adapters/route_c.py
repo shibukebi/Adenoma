@@ -2,6 +2,7 @@ import shutil
 from pathlib import Path
 
 from adenoma_agent.utils import (
+    env_with_cuda_visible_devices,
     ensure_dir,
     read_json,
     run_command,
@@ -75,6 +76,9 @@ class RouteCSelectorAdapter(object):
         attempts = []
         final_payload = None
         final_mode = None
+        patho_r1_env = env_with_cuda_visible_devices(
+            runtime.get("execution", {}).get("patho_r1_cuda_visible_devices")
+        )
         for current_mode in modes:
             command = [
                 paths["patho_r1_python"],
@@ -102,6 +106,7 @@ class RouteCSelectorAdapter(object):
             result = run_command(
                 command,
                 timeout=self.bundle["budget"].get("stage_timeout_seconds", {}).get("trace", 300),
+                env_overrides=patho_r1_env if current_mode == "patho-r1" else None,
             )
             attempts.append(result)
             expected = self._expected_paths(output_dir, case_spec.case_id)

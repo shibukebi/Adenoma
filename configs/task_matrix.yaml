@@ -1,22 +1,22 @@
 tasks:
   - scale: wsi
-    task_type: ssa_vs_others_huge_region_agent
+    task_type: serrated_ssl_dysplasia_huge_region_agent
     input_unit: whole_slide
-    output_unit: trace_clusters_navigation_report_and_audit
+    output_unit: hierarchical_trace_navigation_report_and_audit
     status: mvp_active
-    notes: "CPathAgent-style Trace, Navigate, Observe/Reason pipeline for SSA vs others."
+    notes: "Three-stage workflow: serrated lesion assessment -> SSL-like crypt structure -> dysplasia."
   - scale: region
-    task_type: crypt_risk_navigation
+    task_type: ssl_like_crypt_navigation
     input_unit: mucosal_region_cluster
     output_unit: x_y_m_o_trajectory
     status: mvp_active
-    notes: "Each cluster emits l_k, s_k, d_k and a clinically guided review path."
+    notes: "Each cluster emits l_k, s_k, d_k where d_k gates structural crypt review rather than generic high-magnification review."
   - scale: patch
-    task_type: multi_view_reasoning
+    task_type: layered_multi_view_reasoning
     input_unit: navigation_crop_sequence
-    output_unit: english_step_log_and_pathological_report
+    output_unit: english_step_log_and_layered_report
     status: mvp_active
-    notes: "Observation, reasoning, next-step, checklist, and final SSA judgement."
+    notes: "Observation, reasoning, next-step, and layered checklists for serrated lesion, SSL-like structure, and dysplasia."
 future_tasks:
   - vqa_multiscale
   - slidebench_vqa
