@@ -10,7 +10,7 @@ class CaseSpec:
     question: str
     label: Optional[str] = None
     serrated_target: Optional[int] = None
-    ssl_like_target: Optional[int] = None
+    abnormal_crypt_target: Optional[int] = None
     dysplasia_proxy_target: Optional[int] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
@@ -110,11 +110,11 @@ class AuditReport:
 class CaseResult:
     case_id: str
     serrated_target: Optional[int]
-    ssl_like_target: Optional[int]
+    abnormal_crypt_target: Optional[int]
     dysplasia_proxy_target: Optional[int]
     hierarchical_prediction: Dict[str, Any]
     serrated_checklist: Dict[str, Any]
-    ssl_like_crypt_checklist: Dict[str, Any]
+    abnormal_crypt_checklist: Dict[str, Any]
     dysplasia_checklist: Dict[str, Any]
     integrated_report: str
     segmentation_artifact: Dict[str, Any]

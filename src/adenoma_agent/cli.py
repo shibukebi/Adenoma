@@ -54,7 +54,7 @@ def load_case_from_args(bundle, args):
         bundle["runtime"]["data"]["manifest_csv"],
         bundle["runtime"]["data"]["labels_csv"],
         serrated_labels=bundle["runtime"]["data"]["serrated_labels"],
-        ssl_like_positive_labels=bundle["runtime"]["data"]["ssl_like_positive_labels"],
+        abnormal_crypt_positive_labels=bundle["runtime"]["data"]["abnormal_crypt_positive_labels"],
         dysplasia_positive_grades=bundle["runtime"]["data"]["dysplasia_positive_grades"],
     )
     if args.case_id:
@@ -65,15 +65,16 @@ def load_case_from_args(bundle, args):
         return CaseSpec(
             case_id=case_id,
             slide_path=slide_path,
-            task_type="serrated_ssl_dysplasia_huge_region_agent",
+            task_type="mucosa_serrated_abnormal_crypt_dysplasia_agent",
             question=(
-                "Review this whole-slide image through a layered serrated workflow. First decide whether this is a serrated lesion, "
-                "then assess whether the crypt architecture supports an SSL-like pattern, and finally inspect high-magnification cytology "
-                "for dysplasia or atypia."
+                "Review this whole-slide image through a four-stage pathology workflow. First identify reviewable mucosa, "
+                "then decide whether this lesion follows a serrated pathway, then assess whether the crypt architecture shows an "
+                "abnormal crypt pattern, and finally inspect high-magnification cytology for dysplasia or atypia only after "
+                "abnormal crypt support is established."
             ),
             label=None,
             serrated_target=None,
-            ssl_like_target=None,
+            abnormal_crypt_target=None,
             dysplasia_proxy_target=None,
             metadata={},
         )
@@ -102,7 +103,7 @@ def command_run_batch(args):
         bundle["runtime"]["data"]["manifest_csv"],
         bundle["runtime"]["data"]["labels_csv"],
         serrated_labels=bundle["runtime"]["data"]["serrated_labels"],
-        ssl_like_positive_labels=bundle["runtime"]["data"]["ssl_like_positive_labels"],
+        abnormal_crypt_positive_labels=bundle["runtime"]["data"]["abnormal_crypt_positive_labels"],
         dysplasia_positive_grades=bundle["runtime"]["data"]["dysplasia_positive_grades"],
     )
     orchestrator = AdenomaAgentOrchestrator(bundle)
@@ -135,7 +136,7 @@ def command_build_pilot(args):
         bundle["runtime"]["data"]["manifest_csv"],
         bundle["runtime"]["data"]["labels_csv"],
         serrated_labels=bundle["runtime"]["data"]["serrated_labels"],
-        ssl_like_positive_labels=bundle["runtime"]["data"]["ssl_like_positive_labels"],
+        abnormal_crypt_positive_labels=bundle["runtime"]["data"]["abnormal_crypt_positive_labels"],
         dysplasia_positive_grades=bundle["runtime"]["data"]["dysplasia_positive_grades"],
     )
     output_json = args.output_json or str(

@@ -2,7 +2,7 @@
 
 ## 1. 项目目标
 
-当前我们在做的是一个面向结直肠病理 `SSA vs others` 任务的 WSI Agent 原型，目标是模仿论文 **CPathAgent** 的三阶段逻辑，把病理医生在整张切片上的诊断过程拆成：
+当前我们在做的是一个面向结直肠病理 `SSA vs others` 任务的 WSI Agent 原型，目标是模仿论文 **CPathAgent** 的层级逻辑，把病理医生在整张切片上的诊断过程拆成：
 
 1. `Trace Agent`
 2. `Navigate Agent`
@@ -10,11 +10,11 @@
 
 首版目标不是完整复现论文训练体系，而是先把一个 **工程上可跑通、可解释、可回放** 的大图分析流程搭起来，便于后续逐步替换成更强的多模态模型或 API backend。
 
-当前任务固定为：
+当前任务当前按四级链路组织：
 
 - 输入：`Adenoma_yx` 的 WSI
 - 标签：`adenoma_yx_labels.csv`
-- 代理任务：`SSA vs others`
+- 代理任务：`mucosa -> serrated -> abnormal crypt -> dysplasia`
 - 输出：区域筛查结果、导航轨迹、多倍率观察日志、英文病理报告、最终二分类判断
 
 ## 2. 当前系统整体流程

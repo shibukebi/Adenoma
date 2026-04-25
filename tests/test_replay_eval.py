@@ -32,15 +32,15 @@ class ReplayEvalTest(unittest.TestCase):
                 {
                     "status": "warn",
                     "serrated_target": 1,
-                    "ssl_like_target": 1,
+                    "abnormal_crypt_target": 1,
                     "dysplasia_proxy_target": 0,
                     "hierarchical_prediction": {
                         "serrated_lesion_assessment": {"label": "serrated_lesion", "positive": True, "score": 0.9},
-                        "ssl_like_architecture_assessment": {"label": "ssl_like_supported", "positive": True, "score": 0.8},
+                        "abnormal_crypt_assessment": {"label": "abnormal_crypt_supported", "positive": True, "score": 0.8},
                         "dysplasia_assessment": {"label": "dysplasia_not_supported", "positive": False, "score": 0.2},
                     },
                     "serrated_checklist": {"serrated_lesion_context": {"status": "supporting", "evidence_steps": ["step_00"]}},
-                    "ssl_like_crypt_checklist": {"mucus_cap": {"status": "supporting", "evidence_steps": ["step_00"]}},
+                    "abnormal_crypt_checklist": {"mucus_cap": {"status": "supporting", "evidence_steps": ["step_00"]}},
                     "dysplasia_checklist": {"hyperchromasia": {"status": "uncertain", "evidence_steps": ["step_00"]}},
                     "trace_clusters": [{"cluster_id": "cluster_00"}],
                     "trajectory": [{"step_id": "step_00"}],
@@ -50,7 +50,7 @@ class ReplayEvalTest(unittest.TestCase):
                         "metrics": {
                             "trajectory_length": 3,
                             "serrated_checklist_completeness": 1.0,
-                            "ssl_like_checklist_completeness": 1.0,
+                            "abnormal_crypt_checklist_completeness": 1.0,
                             "dysplasia_checklist_completeness": 1.0,
                         },
                     },
@@ -65,7 +65,7 @@ class ReplayEvalTest(unittest.TestCase):
             self.assertEqual(summary["case_count"], 1)
             self.assertEqual(summary["warn_cases"], 1)
             self.assertEqual(summary["serrated_accuracy"], 1.0)
-            self.assertEqual(summary["ssl_like_accuracy"], 1.0)
+            self.assertEqual(summary["abnormal_crypt_accuracy"], 1.0)
             self.assertEqual(summary["dysplasia_proxy_accuracy"], 1.0)
 
 

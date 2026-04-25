@@ -33,7 +33,7 @@ def build_replay_report(case_dir):
     lines.append("- trace_clusters: {0}".format(len(result.get("trace_clusters", []))))
     lines.append("- trajectory_steps: {0}".format(len(result.get("trajectory", []))))
     lines.append("- serrated_target: {0}".format(result.get("serrated_target")))
-    lines.append("- ssl_like_target: {0}".format(result.get("ssl_like_target")))
+    lines.append("- abnormal_crypt_target: {0}".format(result.get("abnormal_crypt_target")))
     lines.append("- dysplasia_proxy_target: {0}".format(result.get("dysplasia_proxy_target")))
     lines.append("- warning_count: {0}".format(len(result.get("audit", {}).get("warnings", []))))
     lines.append("- error_count: {0}".format(len(result.get("audit", {}).get("errors", []))))
@@ -42,7 +42,7 @@ def build_replay_report(case_dir):
     lines.append("")
     hierarchy = result.get("hierarchical_prediction", {})
     lines.append("- serrated lesion: {0}".format(hierarchy.get("serrated_lesion_assessment", {}).get("label")))
-    lines.append("- SSL-like architecture: {0}".format(hierarchy.get("ssl_like_architecture_assessment", {}).get("label")))
+    lines.append("- abnormal crypt: {0}".format(hierarchy.get("abnormal_crypt_assessment", {}).get("label")))
     lines.append("- dysplasia: {0}".format(hierarchy.get("dysplasia_assessment", {}).get("label")))
     lines.append("")
     lines.append("## Checklists")
@@ -51,8 +51,8 @@ def build_replay_report(case_dir):
     for criterion, payload in sorted(result.get("serrated_checklist", {}).items()):
         lines.append("- {0}: {1}".format(criterion, payload.get("status")))
     lines.append("")
-    lines.append("### SSL-like")
-    for criterion, payload in sorted(result.get("ssl_like_crypt_checklist", {}).items()):
+    lines.append("### Abnormal crypt")
+    for criterion, payload in sorted(result.get("abnormal_crypt_checklist", {}).items()):
         lines.append("- {0}: {1}".format(criterion, payload.get("status")))
     lines.append("")
     lines.append("### Dysplasia")

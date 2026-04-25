@@ -13,13 +13,15 @@ class AdenomaManifestAdapter(object):
         manifest_csv,
         labels_csv,
         serrated_labels=None,
-        ssl_like_positive_labels=None,
+        abnormal_crypt_positive_labels=None,
         dysplasia_positive_grades=None,
     ):
         self.manifest_csv = manifest_csv
         self.labels_csv = labels_csv
         self.serrated_labels = tuple(serrated_labels or ())
-        self.ssl_like_positive_labels = tuple(ssl_like_positive_labels or ("Sessile serrated adenoma",))
+        self.abnormal_crypt_positive_labels = tuple(
+            abnormal_crypt_positive_labels or ("Sessile serrated adenoma",)
+        )
         self.dysplasia_positive_grades = tuple(dysplasia_positive_grades or ("high",))
         self._cases = None
 
@@ -35,24 +37,27 @@ class AdenomaManifestAdapter(object):
             label_row = labels.get(slide_id, {})
             label = label_row.get("type")
             question = (
-                "Review this whole-slide image through a layered serrated workflow. "
-                "First decide whether this is a serrated lesion, then assess whether the crypt architecture supports an SSL-like pattern, "
-                "and finally inspect high-magnification cytology for dysplasia or atypia."
+                "Review this whole-slide image through a four-stage pathology workflow. "
+                "First identify reviewable mucosa, then decide whether the lesion follows a serrated pathway, "
+                "then assess whether the crypt pattern shows abnormal crypt architecture, and finally inspect high-magnification cytology "
+                "for dysplasia or atypia only after abnormal crypt support is established."
             )
             cases.append(
                 CaseSpec(
                     case_id=slide_id,
                     slide_path=row["slide_path"],
-                    task_type="serrated_ssl_dysplasia_huge_region_agent",
+                    task_type="mucosa_serrated_abnormal_crypt_dysplasia_agent",
                     question=question,
                     label=label,
                     serrated_target=membership_label_from_type(label, self.serrated_labels),
-                    ssl_like_target=membership_label_from_type(label, self.ssl_like_positive_labels),
+                    abnormal_crypt_target=membership_label_from_type(
+                        label, self.abnormal_crypt_positive_labels
+                    ),
                     dysplasia_proxy_target=binary_label_from_grade(label_row.get("grade"), self.dysplasia_positive_grades),
                     metadata={
                         "slide_filename": row.get("slide_filename"),
                         "grade": label_row.get("grade"),
-                        "proxy_task": "serrated_ssl_dysplasia_hierarchy",
+                        "proxy_task": "mucosa_serrated_abnormal_crypt_dysplasia_hierarchy",
                     },
                 )
             )
@@ -84,7 +89,7 @@ class AdenomaManifestAdapter(object):
                     "slide_path": case.slide_path,
                     "label": case.label,
                     "serrated_target": case.serrated_target,
-                    "ssl_like_target": case.ssl_like_target,
+                    "abnormal_crypt_target": case.abnormal_crypt_target,
                     "dysplasia_proxy_target": case.dysplasia_proxy_target,
                     "pilot_split": "pilot_eval",
                     "selection_reason": "aligned_manifest_and_labels_csv",

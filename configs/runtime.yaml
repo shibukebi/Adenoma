@@ -5,13 +5,13 @@ project:
 data:
   manifest_csv: /data15/data15_5/yuexin2/adenoma/data/adenoma_yx_manifest.csv
   labels_csv: /data15/data15_5/yuexin2/adenoma/data/adenoma_yx_labels.csv
-  proxy_task: serrated_ssl_dysplasia_hierarchy
+  proxy_task: mucosa_serrated_abnormal_crypt_dysplasia_hierarchy
   serrated_labels:
     - Hyperplastic polyps
     - Sessile serrated adenoma
     - Traditional serrated adenoma
     - Unclassified serrated adenoma
-  ssl_like_positive_labels:
+  abnormal_crypt_positive_labels:
     - Sessile serrated adenoma
   dysplasia_positive_grades:
     - high
@@ -43,8 +43,10 @@ trace:
   cluster_grid_size: 16
   min_cell_tissue_fraction: 0.08
   min_cluster_area_fraction: 0.01
+  patho_r1_question: "You are the Trace Agent in a hierarchical pathology workflow. Given a thumbnail image of a colorectal whole-slide image and a list of candidate proposal boxes, identify which proposals most likely contain serrated suspicious mucosa. Focus only on mucosa and serrated screening. Do not assess abnormal crypt or dysplasia. Return JSON only with selected proposal cluster_id values and fields l, s, d, review_stage, desc, and evidence."
   backend_chain:
     - external_command
+    - local_patho_r1
     - heuristic
   labels:
     - serrated_suspicious_mucosa
@@ -67,12 +69,12 @@ observe:
     - external_command
     - local_patho_r1
     - heuristic
-  patho_r1_question: "Describe this pathology crop using a layered serrated workflow. First assess whether the lesion looks serrated, then comment on SSL-like crypt architecture, and finally comment on dysplasia or atypia at high magnification. Respond briefly."
+  patho_r1_question: "Describe this pathology crop using a four-stage pathology workflow. First assess whether reviewable mucosa is present, then whether the lesion follows a serrated pathway, then whether abnormal crypt architecture is supported, and only then comment on dysplasia or atypia. Respond briefly."
   serrated_criteria:
     - serrated_surface_pattern
     - mucus_rich_surface
     - serrated_lesion_context
-  ssl_like_criteria:
+  abnormal_crypt_criteria:
     - basal_dilatation
     - crypt_branching
     - horizontal_growth

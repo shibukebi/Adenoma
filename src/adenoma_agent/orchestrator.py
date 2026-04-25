@@ -104,6 +104,8 @@ class AdenomaAgentOrchestrator(object):
             lambda: self.observe_agent.run(case_spec, trace_result, navigation_result, case_dir, logger),
             timings,
         )
+        if observe_result.get("trajectory_steps"):
+            navigation_result["steps"] = observe_result["trajectory_steps"]
 
         total_runtime_ms = int(round((time.time() - started) * 1000.0))
         timings["total_runtime_ms"] = total_runtime_ms

@@ -4,8 +4,9 @@
 
 This revision focuses on a CPathAgent-style hierarchical WSI workflow for `Adenoma_yx`:
 
+- mucosa assessment
 - serrated lesion assessment
-- SSL-like crypt architecture assessment
+- abnormal crypt architecture assessment
 - dysplasia / atypia assessment
 
 It reuses the existing `adenoma` preprocessing and Route C selection scripts, then adds:
@@ -23,11 +24,11 @@ It reuses the existing `adenoma` preprocessing and Route C selection scripts, th
   - trace clusters with `l_k / s_k / d_k`
   - `(x, y, m, o)` navigation trajectory
   - step-level observation and reasoning logs
-  - layered checklists for serrated lesion, SSL-like structure, and dysplasia
+  - layered checklists for serrated lesion, abnormal crypt structure, and dysplasia
   - layered pathological report and integrated impression
   - audit report
 
-The MVP does not claim pixel-level semantic masks. It is an engineering approximation of the paper's WSI agent logic for serrated lesion triage and layered pathology reasoning.
+The MVP does not claim pixel-level semantic masks. It is an engineering approximation of the paper's WSI agent logic for mucosa triage, serrated screening, abnormal crypt review, and gated dysplasia reasoning.
 
 ## Layout
 

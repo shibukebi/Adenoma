@@ -42,8 +42,8 @@ class TraceAgent(object):
             {
                 "images": [str(thumbnail_path)],
                 "prompt": {
-                    "question": case_spec.question,
-                    "task": "serrated_ssl_dysplasia_trace_annotation",
+                    "question": self.bundle["runtime"]["trace"].get("patho_r1_question", case_spec.question),
+                    "task": "mucosa_serrated_abnormal_crypt_trace_annotation",
                 },
                 "metadata": {
                     "case_id": case_spec.case_id,

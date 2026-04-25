@@ -33,16 +33,16 @@ class ManifestAdapterTest(unittest.TestCase):
                     "Traditional serrated adenoma",
                     "Unclassified serrated adenoma",
                 ),
-                ssl_like_positive_labels=("Sessile serrated adenoma",),
+                abnormal_crypt_positive_labels=("Sessile serrated adenoma",),
                 dysplasia_positive_grades=("high",),
             )
             cases = adapter.list_cases()
             self.assertEqual(len(cases), 3)
             self.assertEqual(cases[0].serrated_target, 1)
-            self.assertEqual(cases[0].ssl_like_target, 1)
+            self.assertEqual(cases[0].abnormal_crypt_target, 1)
             self.assertEqual(cases[0].dysplasia_proxy_target, 0)
             self.assertEqual(cases[1].serrated_target, 1)
-            self.assertEqual(cases[1].ssl_like_target, 0)
+            self.assertEqual(cases[1].abnormal_crypt_target, 0)
             self.assertEqual(cases[2].serrated_target, 0)
             self.assertEqual(cases[2].dysplasia_proxy_target, 1)
             output_path = Path(tmpdir) / "pilot.json"

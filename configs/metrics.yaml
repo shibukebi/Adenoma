@@ -2,8 +2,8 @@ metrics:
   primary:
     - name: serrated_accuracy
       description: "Case-level serrated lesion vs non-serrated lesion accuracy."
-    - name: ssl_like_accuracy
-      description: "Case-level agreement for SSL-like structure assessment."
+    - name: abnormal_crypt_accuracy
+      description: "Case-level agreement for abnormal crypt assessment."
     - name: dysplasia_proxy_accuracy
       description: "Weak agreement between dysplasia assessment and grade-derived proxy target."
     - name: trace_cluster_count
@@ -12,8 +12,8 @@ metrics:
       description: "Number of navigation steps excluding END."
     - name: case_runtime_ms
       description: "End-to-end runtime for a case."
-    - name: ssl_like_checklist_completeness
-      description: "Fraction of SSL-like architecture checklist items assigned a non-empty status."
+    - name: abnormal_crypt_checklist_completeness
+      description: "Fraction of abnormal crypt checklist items assigned a non-empty status."
   secondary:
     - name: cache_hit_rate
       description: "Fraction of adapter or description requests served from cache."
