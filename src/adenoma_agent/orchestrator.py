@@ -61,36 +61,59 @@ class AdenomaAgentOrchestrator(object):
         )
 
         segmentation_dir = ensure_dir(case_dir / "segmentation")
+        grid_first_bypassed_coords_export = case_spec.input_mode == "grid_thumbnail"
         coords_h5 = segmentation_dir / "{0}.h5".format(case_spec.case_id)
-        coords_result = self.coords_adapter.boxes_to_h5(
-            trace_result["selection"]["paths"]["boxes_json"],
-            coords_h5,
-        )
-        logger.log(
-            state="TRACE_TO_SEGMENT",
-            agent="ClamCoordsAdapter",
-            input_ref=str(trace_result["selection"]["paths"]["boxes_json"]),
-            output_ref=str(coords_h5),
-            latency_ms=coords_result["latency_ms"],
-            status="ok" if coords_result["returncode"] == 0 else "error",
-            payload={"stdout": coords_result["stdout"], "stderr": coords_result["stderr"]},
-        )
+        if grid_first_bypassed_coords_export:
+            coords_result = {"returncode": None, "stdout": "", "stderr": "", "latency_ms": 0}
+            patch_export = {"result": {"returncode": None, "stdout": "", "stderr": "", "latency_ms": 0}, "manifest": None}
+            logger.log(
+                state="TRACE_TO_SEGMENT",
+                agent="ClamCoordsAdapter",
+                input_ref=str(trace_result["selection"]["paths"]["boxes_json"]),
+                output_ref=str(coords_h5),
+                latency_ms=0,
+                status="skipped",
+                payload={"reason": "grid_first_bypassed_coords_export"},
+            )
+            logger.log(
+                state="PATCH_EXPORT",
+                agent="PatchExportAdapter",
+                input_ref=str(coords_h5),
+                output_ref="",
+                latency_ms=0,
+                status="skipped",
+                payload={"reason": "grid_first_bypassed_coords_export"},
+            )
+        else:
+            coords_result = self.coords_adapter.boxes_to_h5(
+                trace_result["selection"]["paths"]["boxes_json"],
+                coords_h5,
+            )
+            logger.log(
+                state="TRACE_TO_SEGMENT",
+                agent="ClamCoordsAdapter",
+                input_ref=str(trace_result["selection"]["paths"]["boxes_json"]),
+                output_ref=str(coords_h5),
+                latency_ms=coords_result["latency_ms"],
+                status="ok" if coords_result["returncode"] == 0 else "error",
+                payload={"stdout": coords_result["stdout"], "stderr": coords_result["stderr"]},
+            )
 
-        patch_export = self.patch_export_adapter.export_samples(
-            case_spec.slide_path,
-            coords_h5,
-            segmentation_dir / "patch_samples",
-            max_patches=16,
-        )
-        logger.log(
-            state="PATCH_EXPORT",
-            agent="PatchExportAdapter",
-            input_ref=str(coords_h5),
-            output_ref=str(patch_export["manifest"]),
-            latency_ms=patch_export["result"]["latency_ms"],
-            status="ok" if patch_export["result"]["returncode"] == 0 else "error",
-            payload={"stdout": patch_export["result"]["stdout"], "stderr": patch_export["result"]["stderr"]},
-        )
+            patch_export = self.patch_export_adapter.export_samples(
+                case_spec.slide_path,
+                coords_h5,
+                segmentation_dir / "patch_samples",
+                max_patches=16,
+            )
+            logger.log(
+                state="PATCH_EXPORT",
+                agent="PatchExportAdapter",
+                input_ref=str(coords_h5),
+                output_ref=str(patch_export["manifest"]),
+                latency_ms=patch_export["result"]["latency_ms"],
+                status="ok" if patch_export["result"]["returncode"] == 0 else "error",
+                payload={"stdout": patch_export["result"]["stdout"], "stderr": patch_export["result"]["stderr"]},
+            )
 
         navigation_result = self._run_stage(
             "NAVIGATE",
@@ -113,13 +136,15 @@ class AdenomaAgentOrchestrator(object):
             "thumbnail_path": str(trace_result["selection"]["paths"]["thumbnail"]),
             "boxes_json": str(trace_result["selection"]["paths"]["boxes_json"]),
             "boxes_visualization": str(trace_result["selection"]["paths"]["visualization"]),
-            "coords_h5": str(coords_h5),
-            "patch_manifest": str(patch_export["manifest"]),
+            "coords_h5": None if grid_first_bypassed_coords_export else str(coords_h5),
+            "patch_manifest": None if grid_first_bypassed_coords_export else str(patch_export["manifest"]),
             "trace_clusters_json": str(trace_result["trace_clusters_json"]),
             "navigation_json": str(navigation_result["navigation_json"]),
             "report_json": str(observe_result["report_json"]),
             "coords_returncode": coords_result["returncode"],
             "patch_export_returncode": patch_export["result"]["returncode"],
+            "input_mode": case_spec.input_mode,
+            "grid_first_bypassed_coords_export": bool(grid_first_bypassed_coords_export),
         }
         case_result = self.audit_agent.run(
             case_spec,

@@ -18,13 +18,16 @@ class NavigateAgent(object):
                 "images": [str(trace_result["selection"]["paths"]["thumbnail"])],
                 "prompt": {
                     "question": case_spec.question,
-                    "task": "ssa_navigation_planning",
+                    "task": "cpathagent_navigation_planning",
                 },
                 "metadata": {
                     "case_id": case_spec.case_id,
                     "slide_dimensions_level0": slide_dims,
                     "clusters": [cluster.to_dict() for cluster in trace_result["clusters"]],
                     "interventions": interventions.to_dict() if interventions else {},
+                    "input_mode": case_spec.input_mode,
+                    "grid_thumbnail_path": case_spec.grid_thumbnail_path,
+                    "overview_thumbnail_path": case_spec.overview_thumbnail_path,
                 },
             },
         )
@@ -35,7 +38,8 @@ class NavigateAgent(object):
                 x=int(payload["x"]),
                 y=int(payload["y"]),
                 m=float(payload["m"]),
-                o=payload["o"],
+                region_size_level0=int(payload["region_size_level0"]),
+                need_to_see=payload["need_to_see"],
                 review_goal=payload["review_goal"],
                 stage_gate=payload["stage_gate"],
                 metadata=payload.get("metadata", {}),
@@ -48,6 +52,11 @@ class NavigateAgent(object):
                 output_ref=step.step_id,
                 payload=step.to_dict(),
             )
+        early_stop = int(interventions.early_stop) if interventions and interventions.early_stop is not None else None
+        if early_stop is not None and early_stop >= 0:
+            inspect_steps = [step for step in steps if step.metadata.get("action") != "stop"]
+            stop_steps = [step for step in steps if step.metadata.get("action") == "stop"]
+            steps = inspect_steps[:early_stop] + stop_steps[:1]
         navigation_json = write_json(
             Path(case_dir) / "navigation" / "navigation_steps.json",
             {"steps": [step.to_dict() for step in steps], "backend_attempts": backend_response["attempts"]},

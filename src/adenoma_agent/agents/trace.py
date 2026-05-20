@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -10,6 +11,7 @@ from adenoma_agent.utils import (
     bbox_to_dict,
     connected_components_from_grid,
     map_bbox_thumb_to_level0,
+    read_json,
     write_json,
 )
 
@@ -22,13 +24,16 @@ class TraceAgent(object):
 
     def run(self, case_spec, case_dir, logger, interventions=None, preferred_mode=None):
         trace_dir = Path(case_dir) / "trace"
-        intervention_spec = interventions.override_roi if interventions else None
-        selection = self.selector_adapter.select(
-            case_spec,
-            trace_dir,
-            manual_boxes=intervention_spec,
-            preferred_mode=preferred_mode,
-        )
+        if case_spec.input_mode == "grid_thumbnail":
+            selection = self._select_grid_input(case_spec, trace_dir)
+        else:
+            intervention_spec = interventions.override_roi if interventions else None
+            selection = self.selector_adapter.select(
+                case_spec,
+                trace_dir,
+                manual_boxes=intervention_spec,
+                preferred_mode=preferred_mode,
+            )
         payload = selection["payload"]
         thumbnail_meta = payload["thumbnail_meta"]
         thumbnail_path = selection["paths"]["thumbnail"]
@@ -43,7 +48,7 @@ class TraceAgent(object):
                 "images": [str(thumbnail_path)],
                 "prompt": {
                     "question": self.bundle["runtime"]["trace"].get("patho_r1_question", case_spec.question),
-                    "task": "mucosa_serrated_abnormal_crypt_trace_annotation",
+                    "task": "ssl_others_dual_branch_trace_annotation",
                 },
                 "metadata": {
                     "case_id": case_spec.case_id,
@@ -54,9 +59,21 @@ class TraceAgent(object):
             },
         )
         proposal_lookup = {proposal["cluster_id"]: proposal for proposal in proposals}
-        clusters = []
-        for cluster_payload in backend_response["output"]["clusters"]:
-            proposal = proposal_lookup[cluster_payload["cluster_id"]]
+        all_cluster_payloads = list(backend_response["output"].get("all_clusters") or backend_response["output"]["clusters"])
+        all_clusters = []
+        for cluster_payload in all_cluster_payloads:
+            proposal = proposal_lookup.get(cluster_payload["cluster_id"])
+            if proposal is None:
+                fallback_thumb = cluster_payload.get("group_bbox_thumb", cluster_payload["cluster_bbox_thumb"])
+                fallback_level0 = cluster_payload.get("group_bbox_level0", cluster_payload["cluster_bbox_level0"])
+                proposal = {
+                    "cluster_id": cluster_payload["cluster_id"],
+                    "cluster_bbox_thumb": fallback_thumb,
+                    "cluster_bbox_level0": fallback_level0,
+                    "regions_thumb": cluster_payload.get("regions_thumb", [fallback_thumb]),
+                    "regions_level0": cluster_payload.get("regions_level0", [fallback_level0]),
+                    "metadata": {},
+                }
             clusters.append(
                 TraceCluster(
                     cluster_id=proposal["cluster_id"],
@@ -76,19 +93,57 @@ class TraceAgent(object):
                         **proposal["metadata"],
                         **cluster_payload.get("metadata", {}),
                     },
+                    patch_ids_ordered=list(cluster_payload.get("patch_ids_ordered", [])),
+                    patches_thumb=list(cluster_payload.get("patches_thumb", [])),
+                    patches_level0=list(cluster_payload.get("patches_level0", [])),
+                    group_bbox_thumb=dict(cluster_payload.get("group_bbox_thumb", proposal["cluster_bbox_thumb"])),
+                    group_bbox_level0=dict(cluster_payload.get("group_bbox_level0", proposal["cluster_bbox_level0"])),
                 )
             )
 
-        clusters = sorted(clusters, key=lambda item: (item.s, bbox_area(item.cluster_bbox_thumb)), reverse=True)
+        all_clusters = sorted(all_clusters, key=lambda item: int(item.s), reverse=True)
+        clusters = list(all_clusters)
         clusters = clusters[: int(self.bundle["budget"].get("max_trace_candidates", 4))]
         clusters_json = trace_dir / "trace_clusters.json"
-        write_json(clusters_json, {"clusters": [cluster.to_dict() for cluster in clusters]})
+        write_json(
+            clusters_json,
+            {
+                "clusters": [cluster.to_dict() for cluster in clusters],
+                "all_clusters": [cluster.to_dict() for cluster in all_clusters],
+                "patch_assignments": backend_response["output"].get("patch_assignments", {"patches": []}),
+                "top_k_cluster_count": int(self.bundle["budget"].get("max_trace_candidates", 4)),
+                "coverage_summary": backend_response["output"].get("coverage_summary", {}),
+            },
+        )
         backend_json = trace_dir / "trace_backend_attempts.json"
-        write_json(backend_json, {"attempts": backend_response["attempts"]})
+        write_json(
+            backend_json,
+            {
+                "attempts": backend_response["attempts"],
+                "trace_attempts": backend_response.get("trace_attempts", []),
+            },
+        )
+        raw_response_path = selection["paths"].get("raw_response")
+        if raw_response_path:
+            raw_texts = backend_response.get("raw_texts", [])
+            if raw_texts:
+                lines = []
+                for item in raw_texts:
+                    lines.append(
+                        "[attempt {0} | {1}]".format(
+                            int(item.get("attempt_index", 0)),
+                            item.get("attempt_type", "unknown"),
+                        )
+                    )
+                    lines.append(str(item.get("text", "")))
+                    lines.append("")
+                Path(raw_response_path).write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+            elif backend_response.get("raw_text"):
+                Path(raw_response_path).write_text(str(backend_response.get("raw_text", "")) + "\n", encoding="utf-8")
         logger.log(
             state="TRACE",
             agent="TraceAgent",
-            input_ref=case_spec.slide_path,
+            input_ref=case_spec.grid_thumbnail_path if case_spec.input_mode == "grid_thumbnail" else case_spec.slide_path,
             output_ref=str(clusters_json),
             payload={
                 "cluster_count": len(clusters),
@@ -102,9 +157,87 @@ class TraceAgent(object):
             "selection": selection,
             "payload": payload,
             "clusters": clusters,
+            "all_clusters": all_clusters,
             "trace_clusters_json": clusters_json,
             "trace_backend_json": backend_json,
             "trace_dir": trace_dir,
+        }
+
+    def _select_grid_input(self, case_spec, trace_dir):
+        trace_dir = Path(trace_dir)
+        trace_dir.mkdir(parents=True, exist_ok=True)
+        input_dir = trace_dir / "grid_input"
+        input_dir.mkdir(parents=True, exist_ok=True)
+
+        grid_thumbnail_path = Path(case_spec.grid_thumbnail_path or "")
+        grid_metadata_path = Path(case_spec.grid_metadata_path or "")
+        if not grid_thumbnail_path.exists():
+            raise RuntimeError("grid_thumbnail_path is missing or does not exist for case {0}".format(case_spec.case_id))
+        if not grid_metadata_path.exists():
+            raise RuntimeError("grid_metadata_path is missing or does not exist for case {0}".format(case_spec.case_id))
+
+        local_thumbnail_path = input_dir / grid_thumbnail_path.name
+        local_metadata_path = input_dir / (grid_thumbnail_path.stem + ".json")
+        if local_thumbnail_path.resolve() != grid_thumbnail_path.resolve():
+            shutil.copy2(str(grid_thumbnail_path), str(local_thumbnail_path))
+        if local_metadata_path.resolve() != grid_metadata_path.resolve():
+            shutil.copy2(str(grid_metadata_path), str(local_metadata_path))
+
+        grid_payload = read_json(local_metadata_path)
+        image = Image.open(local_thumbnail_path)
+        thumb_w, thumb_h = image.size
+        image.close()
+        crop_bbox_level0 = list(grid_payload.get("level0_crop_bbox") or [0, 0, thumb_w, thumb_h])
+        selected_cells = [cell for cell in grid_payload.get("grid_cells", []) if cell.get("is_selected")]
+        boxes = []
+        for cell in selected_cells:
+            boxes.append(
+                {
+                    "x1": int(cell["level0_top_left_x"]),
+                    "y1": int(cell["level0_top_left_y"]),
+                    "x2": int(cell["level0_top_left_x"]) + int(cell["level0_width"]),
+                    "y2": int(cell["level0_top_left_y"]) + int(cell["level0_height"]),
+                    "score": round(float(cell.get("tissue_coverage_ratio", 0.0)), 4),
+                    "label": "selected_grid_cell",
+                    "patch_id": list(cell.get("patch_id", [cell.get("row_id"), cell.get("col_id")])),
+                }
+            )
+        if not boxes:
+            boxes.append(
+                {
+                    "x1": int(crop_bbox_level0[0]),
+                    "y1": int(crop_bbox_level0[1]),
+                    "x2": int(crop_bbox_level0[2]),
+                    "y2": int(crop_bbox_level0[3]),
+                    "score": 1.0,
+                    "label": "grid_crop_bbox",
+                }
+            )
+        payload = {
+            "mode": "grid_input",
+            "thumbnail_meta": {
+                "thumbnail_size": [int(thumb_w), int(thumb_h)],
+                "slide_dimensions_level0": [int(crop_bbox_level0[2]), int(crop_bbox_level0[3])],
+                "input_mode": "grid_thumbnail",
+                "grid_metadata_path": str(local_metadata_path),
+            },
+            "boxes": boxes,
+            "grid_metadata_path": str(local_metadata_path),
+            "grid_thumbnail_path": str(local_thumbnail_path),
+        }
+        boxes_json = trace_dir / "{0}_grid_input_boxes.json".format(case_spec.case_id)
+        write_json(boxes_json, payload)
+        return {
+            "payload": payload,
+            "mode": "grid_input",
+            "cache_hit": False,
+            "paths": {
+                "thumbnail": local_thumbnail_path,
+                "raw_response": trace_dir / "{0}_grid_input_raw_response.txt".format(case_spec.case_id),
+                "boxes_json": boxes_json,
+                "visualization": local_thumbnail_path,
+            },
+            "attempts": [],
         }
 
     def _build_proposals(self, thumbnail_path, thumbnail_meta, route_c_boxes):
