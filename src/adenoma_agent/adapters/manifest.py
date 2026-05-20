@@ -37,16 +37,17 @@ class AdenomaManifestAdapter(object):
             label_row = labels.get(slide_id, {})
             label = label_row.get("type")
             question = (
-                "Review this whole-slide image through a four-stage pathology workflow. "
-                "First identify reviewable mucosa, then decide whether the lesion follows a serrated pathway, "
-                "then assess whether the crypt pattern shows abnormal crypt architecture, and finally inspect high-magnification cytology "
-                "for dysplasia or atypia only after abnormal crypt support is established."
+                "Review this whole-slide image through a dual-branch colorectal polyp workflow. "
+                "First identify reviewable mucosa, then route regions into the SSL pathway, conventional adenoma pathway, inflammatory polyp pathway, or low-value background. "
+                "For SSL candidates, assess abnormal crypt architecture before SSL-branch dysplasia. "
+                "For conventional adenoma candidates, assess conventional adenoma architecture and then conventional-branch dysplasia. "
+                "Keep the two dysplasia sources separate."
             )
             cases.append(
                 CaseSpec(
                     case_id=slide_id,
                     slide_path=row["slide_path"],
-                    task_type="mucosa_serrated_abnormal_crypt_dysplasia_agent",
+                    task_type="ssl_others_dual_branch_dysplasia_agent",
                     question=question,
                     label=label,
                     serrated_target=membership_label_from_type(label, self.serrated_labels),
@@ -57,7 +58,7 @@ class AdenomaManifestAdapter(object):
                     metadata={
                         "slide_filename": row.get("slide_filename"),
                         "grade": label_row.get("grade"),
-                        "proxy_task": "mucosa_serrated_abnormal_crypt_dysplasia_hierarchy",
+                        "proxy_task": "ssl_others_dual_branch_dysplasia_hierarchy",
                     },
                 )
             )

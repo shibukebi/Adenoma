@@ -205,7 +205,83 @@ def env_with_cuda_visible_devices(value):
     value = str(value).strip()
     if not value:
         return None
+    lowered = value.lower()
+    if lowered in {"auto", "idle", "free", "least_used"}:
+        selected = _select_idle_gpu_index()
+        if selected is None:
+            inherited = str(os.environ.get("CUDA_VISIBLE_DEVICES", "")).strip()
+            if inherited and inherited.lower() not in {"auto", "idle", "free", "least_used"}:
+                return {
+                    "CUDA_VISIBLE_DEVICES": inherited,
+                    "ADENOMA_AGENT_GPU_SELECTION": "inherited_visible_devices",
+                }
+            return None
+        return {
+            "CUDA_VISIBLE_DEVICES": str(selected),
+            "ADENOMA_AGENT_GPU_SELECTION": "auto_idle_gpu",
+        }
     return {"CUDA_VISIBLE_DEVICES": value}
+
+
+def _select_idle_gpu_index():
+    command = [
+        "nvidia-smi",
+        "--query-gpu=index,memory.used,utilization.gpu",
+        "--format=csv,noheader,nounits",
+    ]
+    try:
+        completed = subprocess.run(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True,
+            timeout=5,
+            check=False,
+        )
+    except Exception:
+        return None
+    if completed.returncode != 0:
+        return None
+    candidates = []
+    for line in completed.stdout.splitlines():
+        parts = [item.strip() for item in line.split(",")]
+        if len(parts) < 3:
+            continue
+        try:
+            index = int(parts[0])
+            memory_used = float(parts[1])
+            utilization = float(parts[2])
+        except Exception:
+            continue
+        candidates.append((memory_used, utilization, index))
+    if not candidates:
+        return _select_idle_gpu_index_with_torch()
+    candidates.sort()
+    return candidates[0][2]
+
+
+def _select_idle_gpu_index_with_torch():
+    try:
+        import torch
+    except Exception:
+        return None
+    try:
+        if not torch.cuda.is_available():
+            return None
+        candidates = []
+        for index in range(torch.cuda.device_count()):
+            try:
+                free_bytes, total_bytes = torch.cuda.mem_get_info(index)
+            except Exception:
+                continue
+            used_bytes = max(0, int(total_bytes) - int(free_bytes))
+            candidates.append((used_bytes, -int(free_bytes), index))
+        if not candidates:
+            return None
+        candidates.sort()
+        return candidates[0][2]
+    except Exception:
+        return None
 
 
 def run_command(command, timeout=None, cwd=None, env_overrides=None):
@@ -220,8 +296,9 @@ def run_command(command, timeout=None, cwd=None, env_overrides=None):
     completed = subprocess.run(
         command,
         cwd=cwd,
-        capture_output=True,
-        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        universal_newlines=True,
         timeout=timeout,
         check=False,
         env=env,

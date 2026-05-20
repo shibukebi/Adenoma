@@ -7,7 +7,7 @@ from adenoma_agent.eval import evaluate_run
 from adenoma_agent.orchestrator import AdenomaAgentOrchestrator
 from adenoma_agent.replay import build_replay_report, write_replay_report
 from adenoma_agent.schemas import CaseSpec, InterventionEvent
-from adenoma_agent.utils import ensure_dir, write_json
+from adenoma_agent.utils import ensure_dir, read_json, write_json
 
 
 def build_parser():
@@ -25,6 +25,19 @@ def build_parser():
     run_case.add_argument("--force-zoom", type=float, default=None)
     run_case.add_argument("--early-stop-after", type=int, default=None)
     run_case.add_argument("--operator-note", default=None)
+
+    run_grid_case = subparsers.add_parser("run-grid-case", help="Run one external gridded thumbnail case through the pipeline.")
+    run_grid_case.add_argument("--grid-thumbnail-path", required=True)
+    run_grid_case.add_argument("--grid-metadata-path", required=True)
+    run_grid_case.add_argument("--slide-path", default=None)
+    run_grid_case.add_argument("--case-id", default=None)
+    run_grid_case.add_argument("--output-root", required=True)
+    run_grid_case.add_argument("--runtime-config", default=None)
+    run_grid_case.add_argument("--budget-config", default=None)
+    run_grid_case.add_argument("--trace-mode", default=None, choices=["auto", "patho-r1", "heuristic", "manual"])
+    run_grid_case.add_argument("--force-zoom", type=float, default=None)
+    run_grid_case.add_argument("--early-stop-after", type=int, default=None)
+    run_grid_case.add_argument("--operator-note", default=None)
 
     run_batch = subparsers.add_parser("run-batch", help="Run a batch of cases from the manifest.")
     run_batch.add_argument("--output-root", required=True)
@@ -65,12 +78,12 @@ def load_case_from_args(bundle, args):
         return CaseSpec(
             case_id=case_id,
             slide_path=slide_path,
-            task_type="mucosa_serrated_abnormal_crypt_dysplasia_agent",
+            task_type="ssl_others_dual_branch_dysplasia_agent",
             question=(
-                "Review this whole-slide image through a four-stage pathology workflow. First identify reviewable mucosa, "
-                "then decide whether this lesion follows a serrated pathway, then assess whether the crypt architecture shows an "
-                "abnormal crypt pattern, and finally inspect high-magnification cytology for dysplasia or atypia only after "
-                "abnormal crypt support is established."
+                "Review this whole-slide image through a dual-branch colorectal polyp workflow. First identify reviewable mucosa, "
+                "then route regions into the SSL pathway, conventional adenoma pathway, inflammatory polyp pathway, or low-value background. "
+                "For SSL candidates, assess abnormal crypt architecture before SSL-branch dysplasia. For conventional adenoma candidates, "
+                "assess conventional adenoma architecture and then conventional-branch dysplasia. Keep the two dysplasia sources separate."
             ),
             label=None,
             serrated_target=None,
@@ -81,12 +94,92 @@ def load_case_from_args(bundle, args):
     raise SystemExit("Either --case-id or --slide-path is required.")
 
 
+def load_grid_case_from_args(bundle, args):
+    grid_thumbnail_path = Path(args.grid_thumbnail_path)
+    grid_metadata_path = Path(args.grid_metadata_path)
+    if not grid_thumbnail_path.exists():
+        raise SystemExit("Grid thumbnail not found: {0}".format(grid_thumbnail_path))
+    if not grid_metadata_path.exists():
+        raise SystemExit("Grid metadata not found: {0}".format(grid_metadata_path))
+
+    adapter = AdenomaManifestAdapter(
+        bundle["runtime"]["data"]["manifest_csv"],
+        bundle["runtime"]["data"]["labels_csv"],
+        serrated_labels=bundle["runtime"]["data"]["serrated_labels"],
+        abnormal_crypt_positive_labels=bundle["runtime"]["data"]["abnormal_crypt_positive_labels"],
+        dysplasia_positive_grades=bundle["runtime"]["data"]["dysplasia_positive_grades"],
+    )
+    grid_payload = read_json(grid_metadata_path)
+    case_id = args.case_id or grid_payload.get("slide_id") or grid_thumbnail_path.stem.split("_tissuegrid", 1)[0]
+    try:
+        base_case = adapter.get_case(case_id)
+        slide_path = args.slide_path or base_case.slide_path
+        label = base_case.label
+        serrated_target = base_case.serrated_target
+        abnormal_crypt_target = base_case.abnormal_crypt_target
+        dysplasia_proxy_target = base_case.dysplasia_proxy_target
+        question = base_case.question
+        metadata = dict(base_case.metadata)
+    except KeyError:
+        slide_path = args.slide_path or str(grid_payload.get("slide_path") or "")
+        label = None
+        serrated_target = None
+        abnormal_crypt_target = None
+        dysplasia_proxy_target = None
+        question = (
+            "Review this whole-slide image through a dual-branch colorectal polyp workflow. "
+            "First identify reviewable mucosa, then route regions into the SSL pathway, conventional adenoma pathway, inflammatory polyp pathway, or low-value background. "
+            "For SSL candidates, assess abnormal crypt architecture before SSL-branch dysplasia. For conventional adenoma candidates, "
+            "assess conventional adenoma architecture and then conventional-branch dysplasia. Keep the two dysplasia sources separate."
+        )
+        metadata = {}
+
+    if not slide_path:
+        raise SystemExit("Grid-first execution requires a resolvable slide_path from the manifest, metadata, or --slide-path.")
+
+    overview_path = grid_thumbnail_path.with_name(grid_thumbnail_path.name.replace("_grid.jpg", ".jpg"))
+    return CaseSpec(
+        case_id=case_id,
+        slide_path=str(slide_path),
+        task_type="ssl_others_dual_branch_cpathagent_grid",
+        question=question,
+        input_mode="grid_thumbnail",
+        grid_thumbnail_path=str(grid_thumbnail_path),
+        grid_metadata_path=str(grid_metadata_path),
+        overview_thumbnail_path=str(overview_path) if overview_path.exists() else None,
+        label=label,
+        serrated_target=serrated_target,
+        abnormal_crypt_target=abnormal_crypt_target,
+        dysplasia_proxy_target=dysplasia_proxy_target,
+        metadata={
+            **metadata,
+            "grid_thumbnail_path": str(grid_thumbnail_path),
+            "grid_metadata_path": str(grid_metadata_path),
+        },
+    )
+
+
 def command_run_case(args):
     bundle = load_bundle(args.runtime_config, args.budget_config)
     case_spec = load_case_from_args(bundle, args)
     orchestrator = AdenomaAgentOrchestrator(bundle)
     interventions = InterventionEvent(
         override_roi=args.override_box_thumb,
+        force_zoom=args.force_zoom,
+        early_stop=args.early_stop_after,
+        operator_note=args.operator_note,
+    )
+    output_root = ensure_dir(args.output_root)
+    result = orchestrator.run_case(case_spec, output_root, interventions=interventions, trace_mode=args.trace_mode)
+    print("case_dir={0}".format(result["case_dir"]))
+    print("case_result={0}".format(result["case_result_path"]))
+
+
+def command_run_grid_case(args):
+    bundle = load_bundle(args.runtime_config, args.budget_config)
+    case_spec = load_grid_case_from_args(bundle, args)
+    orchestrator = AdenomaAgentOrchestrator(bundle)
+    interventions = InterventionEvent(
         force_zoom=args.force_zoom,
         early_stop=args.early_stop_after,
         operator_note=args.operator_note,
@@ -159,6 +252,8 @@ def main():
     args = parser.parse_args()
     if args.command == "run-case":
         command_run_case(args)
+    elif args.command == "run-grid-case":
+        command_run_grid_case(args)
     elif args.command == "run-batch":
         command_run_batch(args)
     elif args.command == "build-pilot":

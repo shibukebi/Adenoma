@@ -19,20 +19,33 @@ data:
 paths:
   clam_python: /data15/data15_5/yuexin2/anaconda3/envs/clam_latest/bin/python
   patho_r1_python: /data15/data15_5/yuexin2/anaconda3/envs/patho-r1/bin/python
+  cpathagent_qwen_python: /data15/data15_5/yuexin2/anaconda3/envs/patho-r1/bin/python
   route_c_select_script: /data15/data15_5/yuexin2/adenoma/scripts/patho_r1_route_c_select.py
   route_c_boxes_to_h5_script: /data15/data15_5/yuexin2/adenoma/scripts/route_c_boxes_to_h5.py
   export_patch_samples_script: /data15/data15_5/yuexin2/adenoma/scripts/export_patch_samples.py
   patho_r1_patch_qa_script: /data15/data15_5/yuexin2/adenoma/scripts/run_patho_r1_qa.py
+  cpathagent_qwen_runner_script: /data15/data15_5/yuexin2/adenoma_agent/scripts/run_cpathagent_qwen.py
   crop_helper_script: /data15/data15_5/yuexin2/adenoma_agent/src/adenoma_agent/helpers/export_navigation_crops.py
 models:
   patho_r1_model_id: WenchuanZhang/Patho-R1-3B
   patho_r1_cache_dir: /data15/data15_5/yuexin2/adenoma/models/hf_cache
+  cpathagent_qwen_model_id: /data1/yuexin/Adenoma/models/Qwen2.5-VL-7B-Instruct
+  cpathagent_qwen_multimodal_model_id: /data1/yuexin/Adenoma/models/Qwen2.5-VL-7B-Instruct
+  cpathagent_qwen_vision_encoder_id: built_in_from_checkpoint
+  cpathagent_qwen_projector_type: checkpoint_native
+  cpathagent_qwen_adapter_path: /data1/yuexin/Adenoma/models/PathReasoner-R1
+  cpathagent_qwen_cache_dir: /data15/data15_5/yuexin2/adenoma/models/cpathagent_qwen_cache
 execution:
   patho_r1_cuda_visible_devices: "5"
+  cpathagent_qwen_cuda_visible_devices: "5"
 backends:
   external_command:
     enabled: false
     command_prefix: []
+  local_cpathagent_qwen:
+    enabled: true
+    max_new_tokens: 2200
+    shim_mode: swift
   local_patho_r1:
     enabled: true
     max_new_tokens: 256
@@ -43,23 +56,24 @@ trace:
   cluster_grid_size: 16
   min_cell_tissue_fraction: 0.08
   min_cluster_area_fraction: 0.01
-  patho_r1_question: "You are the Trace Agent in a hierarchical pathology workflow. Given a thumbnail image of a colorectal whole-slide image and a list of candidate proposal boxes, identify which proposals most likely contain serrated suspicious mucosa. Focus only on mucosa and serrated screening. Do not assess abnormal crypt or dysplasia. Return JSON only with selected proposal cluster_id values and fields l, s, d, review_stage, desc, and evidence."
+  patho_r1_question: "You are the Trace Agent in a hierarchical pathology workflow. Analyze a gridded thumbnail image of a colorectal whole-slide image, partition all selected grid cells into coherent pathology groups, and prioritize both the SSL pathway and conventional adenoma pathway while keeping background and inflammatory groups distinct. Focus on workflow routing rather than final diagnosis. Do not assess tumor grade, final subtype certainty, or broad differential diagnosis. Return JSON only using the groups schema requested by the user prompt."
   backend_chain:
     - external_command
+    - local_cpathagent_qwen
     - local_patho_r1
     - heuristic
   labels:
-    - serrated_suspicious_mucosa
-    - non_serrated_mucosa
-    - background
-    - artifact
+    - background_artifact_stroma
+    - normal_mucosa
+    - conventional_adenoma_like
+    - inflammatory_polyp_like
+    - ssl_suspicious_mucosa
 navigate:
   coordinate_mode: level0
   overlap_threshold: 0.30
   magnification_schedule:
-    - 1.0
-    - 2.5
     - 5.0
+    - 20.0
   backend_chain:
     - external_command
     - heuristic
@@ -69,7 +83,7 @@ observe:
     - external_command
     - local_patho_r1
     - heuristic
-  patho_r1_question: "Describe this pathology crop using a four-stage pathology workflow. First assess whether reviewable mucosa is present, then whether the lesion follows a serrated pathway, then whether abnormal crypt architecture is supported, and only then comment on dysplasia or atypia. Respond briefly."
+  patho_r1_question: "Describe this pathology crop using a dual-branch colorectal pathology workflow. First assess whether reviewable mucosa is present, then decide whether the region fits the serrated pathway, the conventional adenoma pathway, or a non-neoplastic/inflammatory pathway. For serrated candidates, assess abnormal crypt architecture before commenting on dysplasia. For conventional adenoma candidates, assess conventional adenoma architecture and then comment on dysplasia. Respond briefly."
   serrated_criteria:
     - serrated_surface_pattern
     - mucus_rich_surface
@@ -82,6 +96,10 @@ observe:
     - serration_to_base
     - mucus_cap
     - abnormal_maturation
+  conventional_adenoma_criteria:
+    - tubular_or_tubulovillous_architecture
+    - crowded_adenomatous_glands
+    - pencillate_hyperchromatic_nuclei
   dysplasia_criteria:
     - nuclear_enlargement_stratification
     - hyperchromasia

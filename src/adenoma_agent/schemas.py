@@ -8,6 +8,10 @@ class CaseSpec:
     slide_path: str
     task_type: str
     question: str
+    input_mode: str = "wsi"
+    grid_thumbnail_path: Optional[str] = None
+    grid_metadata_path: Optional[str] = None
+    overview_thumbnail_path: Optional[str] = None
     label: Optional[str] = None
     serrated_target: Optional[int] = None
     abnormal_crypt_target: Optional[int] = None
@@ -34,6 +38,11 @@ class TraceCluster:
     desc: str
     evidence: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
+    patch_ids_ordered: List[List[int]] = field(default_factory=list)
+    patches_thumb: List[Dict[str, Any]] = field(default_factory=list)
+    patches_level0: List[Dict[str, Any]] = field(default_factory=list)
+    group_bbox_thumb: Dict[str, int] = field(default_factory=dict)
+    group_bbox_level0: Dict[str, int] = field(default_factory=dict)
 
     def to_dict(self):
         return asdict(self)
@@ -45,7 +54,8 @@ class NavigationStep:
     x: int
     y: int
     m: float
-    o: str
+    region_size_level0: int
+    need_to_see: str
     review_goal: str
     stage_gate: str
     metadata: Dict[str, Any] = field(default_factory=dict)
@@ -124,6 +134,10 @@ class CaseResult:
     cost: Dict[str, Any]
     timing: Dict[str, Any]
     audit: Dict[str, Any]
+    conventional_adenoma_checklist: Dict[str, Any] = field(default_factory=dict)
+    serrated_dysplasia_checklist: Dict[str, Any] = field(default_factory=dict)
+    conventional_dysplasia_checklist: Dict[str, Any] = field(default_factory=dict)
+    final_case_assessment: Dict[str, Any] = field(default_factory=dict)
     label: Optional[str] = None
     status: str = "ok"
     metadata: Dict[str, Any] = field(default_factory=dict)

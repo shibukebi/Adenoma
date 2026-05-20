@@ -12,6 +12,5 @@ budget:
   force_high_mag_below_priority: 3
   default_output_crop_size: 256
   magnification_to_region_size:
-    "1.0": 1024
-    "2.5": 512
     "5.0": 256
+    "20.0": 64
