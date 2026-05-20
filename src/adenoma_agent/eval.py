@@ -115,6 +115,7 @@ def evaluate_run(run_dir):
                 "dysplasia_pred_label",
                 "dysplasia_pred_positive",
                 "dysplasia_pred_score",
+                "final_case_label",
                 "status",
             ]
         )
@@ -123,6 +124,7 @@ def evaluate_run(run_dir):
             serrated_pred = pred.get("serrated_lesion_assessment", {})
             abnormal_crypt_pred = pred.get("abnormal_crypt_assessment", {})
             dysplasia_pred = pred.get("dysplasia_assessment", {})
+            final_pred = pred.get("final_case_assessment", {})
             writer.writerow(
                 [
                     result.get("case_id"),
@@ -139,6 +141,7 @@ def evaluate_run(run_dir):
                     dysplasia_pred.get("label"),
                     dysplasia_pred.get("positive"),
                     dysplasia_pred.get("score"),
+                    final_pred.get("label"),
                     result.get("status"),
                 ]
             )

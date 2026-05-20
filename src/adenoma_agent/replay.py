@@ -43,7 +43,11 @@ def build_replay_report(case_dir):
     hierarchy = result.get("hierarchical_prediction", {})
     lines.append("- serrated lesion: {0}".format(hierarchy.get("serrated_lesion_assessment", {}).get("label")))
     lines.append("- abnormal crypt: {0}".format(hierarchy.get("abnormal_crypt_assessment", {}).get("label")))
+    lines.append("- conventional adenoma: {0}".format(hierarchy.get("conventional_adenoma_assessment", {}).get("label")))
+    lines.append("- serrated dysplasia: {0}".format(hierarchy.get("serrated_dysplasia_assessment", {}).get("label")))
+    lines.append("- conventional dysplasia: {0}".format(hierarchy.get("conventional_dysplasia_assessment", {}).get("label")))
     lines.append("- dysplasia: {0}".format(hierarchy.get("dysplasia_assessment", {}).get("label")))
+    lines.append("- final label: {0}".format(hierarchy.get("final_case_assessment", {}).get("label")))
     lines.append("")
     lines.append("## Checklists")
     lines.append("")
@@ -53,6 +57,18 @@ def build_replay_report(case_dir):
     lines.append("")
     lines.append("### Abnormal crypt")
     for criterion, payload in sorted(result.get("abnormal_crypt_checklist", {}).items()):
+        lines.append("- {0}: {1}".format(criterion, payload.get("status")))
+    lines.append("")
+    lines.append("### Conventional adenoma")
+    for criterion, payload in sorted(result.get("conventional_adenoma_checklist", {}).items()):
+        lines.append("- {0}: {1}".format(criterion, payload.get("status")))
+    lines.append("")
+    lines.append("### Serrated dysplasia")
+    for criterion, payload in sorted(result.get("serrated_dysplasia_checklist", {}).items()):
+        lines.append("- {0}: {1}".format(criterion, payload.get("status")))
+    lines.append("")
+    lines.append("### Conventional dysplasia")
+    for criterion, payload in sorted(result.get("conventional_dysplasia_checklist", {}).items()):
         lines.append("- {0}: {1}".format(criterion, payload.get("status")))
     lines.append("")
     lines.append("### Dysplasia")

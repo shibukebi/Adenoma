@@ -11,11 +11,11 @@ from adenoma_agent.utils import ensure_dir, run_command, write_json, write_text
 
 DEFAULT_TRACE_PROMPT = (
     "You are the Trace Agent in a hierarchical pathology workflow. "
-    "Given a thumbnail image of a colorectal whole-slide image and a list of candidate proposal boxes, "
-    "identify which proposals most likely contain serrated suspicious mucosa. "
-    "Focus only on mucosa and serrated screening. "
-    "Do not assess abnormal crypt or dysplasia. "
-    "Return JSON only with selected proposal cluster_id values and fields l, s, d, review_stage, desc, and evidence."
+    "Analyze a gridded thumbnail image of a colorectal whole-slide image, group adjacent grid cells with similar visual appearance into coherent mucosal regions, "
+    "and prioritize SSL-suspicious mucosa as well as conventional adenoma-like mucosa while keeping inflammatory/background regions distinct. "
+    "Focus on workflow routing, not final diagnosis. "
+    "Do not assess tumor grading, necrosis, or broad differential diagnosis. "
+    "Return JSON only using the groups schema requested by the user prompt."
 )
 
 
@@ -95,10 +95,11 @@ def build_bundle(args):
                 "min_cell_tissue_fraction": args.min_cell_tissue_fraction,
                 "min_cluster_area_fraction": args.min_cluster_area_fraction,
                 "labels": [
-                    "serrated_suspicious_mucosa",
-                    "non_serrated_mucosa",
-                    "background",
-                    "artifact",
+                    "background_artifact_stroma",
+                    "normal_mucosa",
+                    "conventional_adenoma_like",
+                    "inflammatory_polyp_like",
+                    "ssl_suspicious_mucosa",
                 ],
             }
         },
@@ -151,17 +152,16 @@ def enrich_clusters(trace_output, proposals):
     for cluster in trace_output["clusters"]:
         proposal = proposal_lookup.get(cluster["cluster_id"])
         if proposal is None:
+            if cluster.get("cluster_bbox_thumb"):
+                clusters.append(cluster)
             continue
-        clusters.append(
-            {
-                **cluster,
-                "cluster_bbox_thumb": proposal["cluster_bbox_thumb"],
-                "metadata": {
-                    **proposal.get("metadata", {}),
-                    **cluster.get("metadata", {}),
-                },
-            }
-        )
+        merged_cluster = dict(cluster)
+        merged_cluster["cluster_bbox_thumb"] = cluster.get("group_bbox_thumb", proposal["cluster_bbox_thumb"])
+        merged_cluster["metadata"] = {
+            **proposal.get("metadata", {}),
+            **cluster.get("metadata", {}),
+        }
+        clusters.append(merged_cluster)
     return clusters
 
 
@@ -210,7 +210,7 @@ def main():
         "images": [str(thumbnail_path)],
         "prompt": {
             "question": args.trace_prompt,
-            "task": "mucosa_serrated_abnormal_crypt_trace_annotation",
+            "task": "ssl_others_dual_branch_trace_annotation",
         },
         "metadata": {
             "case_id": thumbnail_path.stem,
@@ -224,14 +224,17 @@ def main():
     }
     prompt = _build_trace_patho_r1_prompt(request, bundle)
     raw_text, command_result = invoke_patho_r1(args, prompt, thumbnail_path)
-    trace_output = _build_trace_output_from_text(raw_text, request, bundle)
-    clusters = enrich_clusters(trace_output, proposals)[: args.max_trace_candidates]
-
     visualization_path = output_dir / "{0}_trace_patho_r1.png".format(thumbnail_path.stem)
     clusters_json_path = output_dir / "{0}_trace_clusters.json".format(thumbnail_path.stem)
     prompt_path = output_dir / "{0}_trace_prompt.txt".format(thumbnail_path.stem)
     raw_response_path = output_dir / "{0}_trace_raw_response.txt".format(thumbnail_path.stem)
     summary_path = output_dir / "{0}_trace_summary.txt".format(thumbnail_path.stem)
+
+    write_text(prompt_path, prompt + "\n")
+    write_text(raw_response_path, raw_text + "\n")
+
+    trace_output = _build_trace_output_from_text(raw_text, request, bundle)
+    clusters = enrich_clusters(trace_output, proposals)[: args.max_trace_candidates]
 
     draw_clusters(thumbnail_path, clusters, visualization_path)
     write_json(
@@ -243,9 +246,6 @@ def main():
             "backend_command": command_result["command"],
         },
     )
-    write_text(prompt_path, prompt + "\n")
-    write_text(raw_response_path, raw_text + "\n")
-
     summary_lines = [
         "thumbnail: {0}".format(thumbnail_path),
         "proposal_count: {0}".format(len(proposals)),

@@ -26,7 +26,7 @@ def main():
 
     crops = []
     for step in payload.get("steps", []):
-        region_size = int(step.get("metadata", {}).get("region_size_level0", args.output_size))
+        region_size = int(step.get("region_size_level0", step.get("metadata", {}).get("region_size_level0", args.output_size)))
         half = int(region_size // 2)
         x = int(step["x"])
         y = int(step["y"])
@@ -44,7 +44,7 @@ def main():
                 "x": x,
                 "y": y,
                 "m": float(step["m"]),
-                "o": step.get("o"),
+                "need_to_see": step.get("need_to_see"),
                 "region_size_level0": region_size,
                 "metadata": step.get("metadata", {}),
             }
