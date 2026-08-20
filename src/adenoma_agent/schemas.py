@@ -83,6 +83,37 @@ class ObservationRecord:
 
 
 @dataclass
+class GlobalReviewRecord:
+    review_id: str
+    source_step_id: str
+    decision: str
+    continue_reason: str
+    chief_confidence: float
+    resolved_branch_state: Dict[str, str]
+    sufficient_evidence: List[str]
+    unresolved_questions: List[str]
+    next_visual_target: Optional[Dict[str, Any]] = None
+    branch_correction_reason: str = ""
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self):
+        return asdict(self)
+
+
+@dataclass
+class ChiefReviewTarget:
+    target_cluster_id: str
+    target_branch: str
+    target_region_semantic: str
+    target_morphology_prompt: List[str]
+    preferred_magnification: float
+    priority_reason: str
+
+    def to_dict(self):
+        return asdict(self)
+
+
+@dataclass
 class ReasoningState:
     hypotheses: List[str]
     supporting_evidence: List[str]
@@ -137,6 +168,12 @@ class CaseResult:
     conventional_adenoma_checklist: Dict[str, Any] = field(default_factory=dict)
     serrated_dysplasia_checklist: Dict[str, Any] = field(default_factory=dict)
     conventional_dysplasia_checklist: Dict[str, Any] = field(default_factory=dict)
+    ssl_checklist: Dict[str, Any] = field(default_factory=dict)
+    hp_checklist: Dict[str, Any] = field(default_factory=dict)
+    tsa_checklist: Dict[str, Any] = field(default_factory=dict)
+    tsa_cytological_atypia_checklist: Dict[str, Any] = field(default_factory=dict)
+    conventional_architecture_checklist: Dict[str, Any] = field(default_factory=dict)
+    inflammatory_checklist: Dict[str, Any] = field(default_factory=dict)
     final_case_assessment: Dict[str, Any] = field(default_factory=dict)
     label: Optional[str] = None
     status: str = "ok"

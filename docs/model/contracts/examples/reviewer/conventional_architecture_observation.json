@@ -1,0 +1,70 @@
+{
+  "schema_version": "reviewer_observation_v1",
+  "observation_id": "review_observation_conventional_001",
+  "request_id": "review_request_conventional_001",
+  "reviewer": "ConventionalArchitectureReviewer",
+  "task_profile": "villous_extent_estimation",
+  "primary_roi_id": "roi_conventional_5x_001",
+  "primary_magnification": 5,
+  "target_features": [
+    "villous_component_present",
+    "villous_component_extent_estimate",
+    "tubular_villous_mixing"
+  ],
+  "quality": {
+    "overall_evaluability": "adequate",
+    "status_confidence": 0.88,
+    "adequate_for_requested_features": true,
+    "limitations": []
+  },
+  "findings": [
+    {
+      "feature_id": "villous_component_present",
+      "status": "present",
+      "status_confidence": 0.84,
+      "feature_evaluability": "adequate",
+      "scope": "roi_overview",
+      "evidence_text": "Elongated villiform projections are present in the reviewable adenomatous region.",
+      "limitations": []
+    },
+    {
+      "feature_id": "villous_component_extent_estimate",
+      "status": "present",
+      "status_confidence": 0.72,
+      "feature_evaluability": "adequate",
+      "scope": "roi_overview",
+      "evidence_text": "Villous projections occupy a substantial but non-dominant fraction of this ROI.",
+      "limitations": [],
+      "quantitation": {
+        "metric": "villous_component_extent",
+        "category": "25_to_75_percent"
+      }
+    },
+    {
+      "feature_id": "tubular_villous_mixing",
+      "status": "present",
+      "status_confidence": 0.8,
+      "feature_evaluability": "adequate",
+      "scope": "roi_overview",
+      "evidence_text": "Tubular glands and villiform projections coexist within the reviewed ROI.",
+      "limitations": []
+    }
+  ],
+  "incidental_findings": [
+    {
+      "feature_id": "tubular_architecture",
+      "status": "present",
+      "status_confidence": 0.82,
+      "feature_evaluability": "adequate",
+      "scope": "roi_overview",
+      "evidence_text": "Tubular glands form a substantial component of this ROI.",
+      "limitations": []
+    }
+  ],
+  "overall_evidence_strength": {
+    "level": "strong",
+    "score": 0.82
+  },
+  "limitations": ["extent is ROI-overview evidence, not a whole-slide ratio"],
+  "does_not_decide_final_diagnosis": true
+}

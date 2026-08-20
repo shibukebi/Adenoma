@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "reviewer_observation_v1.schema.json",
+  "title": "ReviewerObservationV1",
+  "description": "Strict, diagnosis-free ROI evidence emitted by a logical reviewer.",
+  "$comment": "Request-aware validation requires every requested target feature exactly once and applies the registry incidental-feature allowlist.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "observation_id",
+    "request_id",
+    "reviewer",
+    "task_profile",
+    "primary_roi_id",
+    "primary_magnification",
+    "target_features",
+    "quality",
+    "findings",
+    "incidental_findings",
+    "overall_evidence_strength",
+    "limitations",
+    "does_not_decide_final_diagnosis"
+  ],
+  "properties": {
+    "schema_version": { "const": "reviewer_observation_v1" },
+    "observation_id": { "type": "string", "minLength": 1 },
+    "request_id": { "type": "string", "minLength": 1 },
+    "reviewer": {
+      "$ref": "reviewer_common_v1.schema.json#/$defs/ReviewerName"
+    },
+    "task_profile": {
+      "$ref": "reviewer_common_v1.schema.json#/$defs/TaskProfile"
+    },
+    "primary_roi_id": { "type": "string", "minLength": 1 },
+    "primary_magnification": {
+      "$ref": "reviewer_common_v1.schema.json#/$defs/Magnification"
+    },
+    "target_features": {
+      "type": "array",
+      "items": {
+        "$ref": "reviewer_common_v1.schema.json#/$defs/FeatureId"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "quality": {
+      "$ref": "reviewer_common_v1.schema.json#/$defs/QualityBlock"
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "reviewer_common_v1.schema.json#/$defs/Finding"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "incidental_findings": {
+      "type": "array",
+      "items": {
+        "$ref": "reviewer_common_v1.schema.json#/$defs/Finding"
+      },
+      "uniqueItems": true
+    },
+    "overall_evidence_strength": {
+      "$ref": "reviewer_common_v1.schema.json#/$defs/EvidenceStrength"
+    },
+    "limitations": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "does_not_decide_final_diagnosis": { "const": true }
+  }
+}

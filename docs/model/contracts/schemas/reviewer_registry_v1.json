@@ -1,0 +1,537 @@
+{
+  "schema_version": "reviewer_registry_v1",
+  "registry_version": "1.0.0",
+  "task_request_schema_version": "reviewer_task_request_v1",
+  "observation_schema_version": "reviewer_observation_v1",
+  "ledger_record_schema_version": "reviewer_ledger_record_v1",
+  "logical_reviewers_may_share_backend": true,
+  "retry_policy": {
+    "transport_or_model_retries": 1,
+    "schema_repair_attempts": 1,
+    "max_conflict_resolution_rounds": 2,
+    "retry_same_roi_when_not_evaluable": false
+  },
+  "scale_semantics": [
+    {
+      "magnification": 2.5,
+      "purpose": "roi_overview_evidence",
+      "prohibited_inferences": [
+        "whole_slide_quantitation",
+        "whole_slide_cluster_or_heterogeneity_inference",
+        "cytologic_grading"
+      ]
+    },
+    {
+      "magnification": 5,
+      "purpose": "overall_architecture_component_extent_and_mixing",
+      "prohibited_inferences": [
+        "whole_slide_quantitation",
+        "fine_cytologic_grading"
+      ]
+    },
+    {
+      "magnification": 10,
+      "purpose": "crypt_level_architecture",
+      "prohibited_inferences": [
+        "whole_slide_quantitation",
+        "definitive_high_grade_call_without_20x"
+      ]
+    },
+    {
+      "magnification": 20,
+      "purpose": "cytology_and_high_grade_or_definite_dysplasia",
+      "prohibited_inferences": [
+        "whole_slide_quantitation",
+        "whole_roi_architecture_extent_from_single_field"
+      ]
+    }
+  ],
+  "reviewers": [
+    {
+      "reviewer": "QualityMucosaReviewer",
+      "prompt_id": "quality_mucosa_reviewer",
+      "prompt_version": "quality_mucosa_reviewer_v1",
+      "observation_schema_version": "reviewer_observation_v1",
+      "feature_allowlist": [
+        "reviewable_mucosa",
+        "epithelium_present",
+        "crypts_visible",
+        "crypt_base_visible",
+        "cytology_resolvable",
+        "artifact_limited",
+        "necrosis_limited",
+        "fold_or_blur_limited",
+        "truncation_limited",
+        "background_or_stroma_dominant"
+      ],
+      "prohibited_outputs": [
+        "hypothesis_ranking",
+        "roi_selection",
+        "next_action",
+        "final_diagnosis",
+        "final_label_mapping",
+        "whole_slide_absence_from_single_roi"
+      ],
+      "task_profiles": [
+        {
+          "task_profile": "overview_evaluability",
+          "allowed_primary_magnifications": [2.5, 5],
+          "allowed_context_views": [
+            {
+              "view_role": "adjacent_mucosa",
+              "allowed_magnifications": [2.5, 5],
+              "max_count": 1
+            },
+            {
+              "view_role": "quality_context",
+              "allowed_magnifications": [2.5, 5],
+              "max_count": 1
+            }
+          ],
+          "target_feature_allowlist": [
+            "reviewable_mucosa",
+            "epithelium_present",
+            "artifact_limited",
+            "necrosis_limited",
+            "fold_or_blur_limited",
+            "background_or_stroma_dominant"
+          ],
+          "incidental_feature_allowlist": [
+            "truncation_limited"
+          ]
+        },
+        {
+          "task_profile": "crypt_evaluability",
+          "allowed_primary_magnifications": [10],
+          "allowed_context_views": [
+            {
+              "view_role": "parent_architecture",
+              "allowed_magnifications": [5],
+              "max_count": 1
+            }
+          ],
+          "target_feature_allowlist": [
+            "reviewable_mucosa",
+            "epithelium_present",
+            "crypts_visible",
+            "crypt_base_visible",
+            "artifact_limited",
+            "fold_or_blur_limited",
+            "truncation_limited"
+          ],
+          "incidental_feature_allowlist": [
+            "necrosis_limited",
+            "background_or_stroma_dominant"
+          ]
+        },
+        {
+          "task_profile": "cytology_evaluability",
+          "allowed_primary_magnifications": [20],
+          "allowed_context_views": [
+            {
+              "view_role": "parent_architecture",
+              "allowed_magnifications": [10],
+              "max_count": 1
+            }
+          ],
+          "target_feature_allowlist": [
+            "reviewable_mucosa",
+            "epithelium_present",
+            "cytology_resolvable",
+            "artifact_limited",
+            "necrosis_limited",
+            "fold_or_blur_limited"
+          ],
+          "incidental_feature_allowlist": [
+            "truncation_limited"
+          ]
+        }
+      ]
+    },
+    {
+      "reviewer": "SerratedArchitectureReviewer",
+      "prompt_id": "serrated_architecture_reviewer",
+      "prompt_version": "serrated_architecture_reviewer_v1",
+      "observation_schema_version": "reviewer_observation_v1",
+      "feature_allowlist": [
+        "serration_present",
+        "serration_to_crypt_base",
+        "basal_crypt_dilation",
+        "horizontal_or_boot_shaped_crypt",
+        "crypt_branching",
+        "abnormal_maturation",
+        "surface_limited_serration",
+        "straight_crypt_bases"
+      ],
+      "prohibited_outputs": [
+        "hypothesis_ranking",
+        "roi_selection",
+        "next_action",
+        "final_diagnosis",
+        "final_label_mapping",
+        "whole_slide_absence_from_single_roi"
+      ],
+      "task_profiles": [
+        {
+          "task_profile": "serrated_overview",
+          "allowed_primary_magnifications": [2.5, 5],
+          "allowed_context_views": [
+            {
+              "view_role": "adjacent_mucosa",
+              "allowed_magnifications": [2.5, 5],
+              "max_count": 1
+            },
+            {
+              "view_role": "quality_context",
+              "allowed_magnifications": [5],
+              "max_count": 1
+            }
+          ],
+          "target_feature_allowlist": [
+            "serration_present",
+            "surface_limited_serration",
+            "straight_crypt_bases"
+          ],
+          "incidental_feature_allowlist": [
+            "basal_crypt_dilation",
+            "crypt_branching",
+            "abnormal_maturation"
+          ]
+        },
+        {
+          "task_profile": "ssl_hp_discrimination",
+          "allowed_primary_magnifications": [5, 10],
+          "allowed_context_views": [
+            {
+              "view_role": "parent_architecture",
+              "allowed_magnifications": [2.5, 5],
+              "max_count": 1
+            },
+            {
+              "view_role": "adjacent_mucosa",
+              "allowed_magnifications": [5, 10],
+              "max_count": 1
+            }
+          ],
+          "target_feature_allowlist": [
+            "serration_to_crypt_base",
+            "basal_crypt_dilation",
+            "horizontal_or_boot_shaped_crypt",
+            "crypt_branching",
+            "abnormal_maturation",
+            "surface_limited_serration",
+            "straight_crypt_bases"
+          ],
+          "incidental_feature_allowlist": [
+            "serration_present"
+          ]
+        }
+      ]
+    },
+    {
+      "reviewer": "TSAReviewer",
+      "prompt_id": "tsa_reviewer",
+      "prompt_version": "tsa_reviewer_v1",
+      "observation_schema_version": "reviewer_observation_v1",
+      "feature_allowlist": [
+        "ectopic_crypt_formation",
+        "slit_like_serration",
+        "villiform_or_filiform_serrated_architecture",
+        "cytoplasmic_eosinophilia",
+        "pencillate_nuclei"
+      ],
+      "prohibited_outputs": [
+        "hypothesis_ranking",
+        "roi_selection",
+        "next_action",
+        "final_diagnosis",
+        "final_label_mapping",
+        "whole_slide_absence_from_single_roi",
+        "high_grade_dysplasia_assessment",
+        "D_suffix_label"
+      ],
+      "task_profiles": [
+        {
+          "task_profile": "tsa_overview",
+          "allowed_primary_magnifications": [2.5, 5],
+          "allowed_context_views": [
+            {
+              "view_role": "adjacent_mucosa",
+              "allowed_magnifications": [2.5, 5],
+              "max_count": 1
+            }
+          ],
+          "target_feature_allowlist": [
+            "ectopic_crypt_formation",
+            "slit_like_serration",
+            "villiform_or_filiform_serrated_architecture",
+            "cytoplasmic_eosinophilia"
+          ],
+          "incidental_feature_allowlist": []
+        },
+        {
+          "task_profile": "tsa_architecture",
+          "allowed_primary_magnifications": [5, 10],
+          "allowed_context_views": [
+            {
+              "view_role": "parent_architecture",
+              "allowed_magnifications": [2.5, 5],
+              "max_count": 1
+            }
+          ],
+          "target_feature_allowlist": [
+            "ectopic_crypt_formation",
+            "slit_like_serration",
+            "villiform_or_filiform_serrated_architecture"
+          ],
+          "incidental_feature_allowlist": [
+            "cytoplasmic_eosinophilia",
+            "pencillate_nuclei"
+          ]
+        },
+        {
+          "task_profile": "tsa_signature_cytology",
+          "allowed_primary_magnifications": [10, 20],
+          "allowed_context_views": [
+            {
+              "view_role": "parent_architecture",
+              "allowed_magnifications": [5, 10],
+              "max_count": 1
+            }
+          ],
+          "target_feature_allowlist": [
+            "cytoplasmic_eosinophilia",
+            "pencillate_nuclei"
+          ],
+          "incidental_feature_allowlist": []
+        }
+      ]
+    },
+    {
+      "reviewer": "ConventionalArchitectureReviewer",
+      "prompt_id": "conventional_architecture_reviewer",
+      "prompt_version": "conventional_architecture_reviewer_v1",
+      "observation_schema_version": "reviewer_observation_v1",
+      "feature_allowlist": [
+        "tubular_architecture",
+        "villous_component_present",
+        "villous_component_extent_estimate",
+        "high_villous_component",
+        "tubular_villous_mixing",
+        "crowded_adenomatous_glands",
+        "adenomatous_gland_complexity",
+        "conventional_adenoma_like_epithelium"
+      ],
+      "prohibited_outputs": [
+        "hypothesis_ranking",
+        "roi_selection",
+        "next_action",
+        "final_diagnosis",
+        "final_label_mapping",
+        "whole_slide_absence_from_single_roi"
+      ],
+      "task_profiles": [
+        {
+          "task_profile": "conventional_overview",
+          "allowed_primary_magnifications": [2.5, 5],
+          "allowed_context_views": [
+            {
+              "view_role": "adjacent_mucosa",
+              "allowed_magnifications": [2.5, 5],
+              "max_count": 1
+            }
+          ],
+          "target_feature_allowlist": [
+            "tubular_architecture",
+            "villous_component_present",
+            "tubular_villous_mixing",
+            "conventional_adenoma_like_epithelium"
+          ],
+          "incidental_feature_allowlist": [
+            "high_villous_component",
+            "crowded_adenomatous_glands",
+            "adenomatous_gland_complexity"
+          ]
+        },
+        {
+          "task_profile": "tubular_villous_resolution",
+          "allowed_primary_magnifications": [5, 10],
+          "allowed_context_views": [
+            {
+              "view_role": "parent_architecture",
+              "allowed_magnifications": [2.5, 5],
+              "max_count": 1
+            }
+          ],
+          "target_feature_allowlist": [
+            "tubular_architecture",
+            "villous_component_present",
+            "tubular_villous_mixing",
+            "crowded_adenomatous_glands",
+            "adenomatous_gland_complexity"
+          ],
+          "incidental_feature_allowlist": [
+            "high_villous_component",
+            "conventional_adenoma_like_epithelium"
+          ]
+        },
+        {
+          "task_profile": "villous_extent_estimation",
+          "allowed_primary_magnifications": [5, 10],
+          "allowed_context_views": [
+            {
+              "view_role": "parent_architecture",
+              "allowed_magnifications": [2.5, 5],
+              "max_count": 1
+            }
+          ],
+          "target_feature_allowlist": [
+            "villous_component_present",
+            "villous_component_extent_estimate",
+            "high_villous_component",
+            "tubular_villous_mixing"
+          ],
+          "incidental_feature_allowlist": [
+            "tubular_architecture",
+            "crowded_adenomatous_glands",
+            "adenomatous_gland_complexity",
+            "conventional_adenoma_like_epithelium"
+          ]
+        }
+      ]
+    },
+    {
+      "reviewer": "DysplasiaReviewer",
+      "prompt_id": "dysplasia_reviewer",
+      "prompt_version": "dysplasia_reviewer_v1",
+      "observation_schema_version": "reviewer_observation_v1",
+      "feature_allowlist": [
+        "nuclear_stratification",
+        "hyperchromasia",
+        "loss_of_polarity",
+        "marked_cytologic_atypia",
+        "mitotic_activity",
+        "cribriform_or_complex_crowding",
+        "high_grade_focus",
+        "necrosis_or_dirty_necrosis",
+        "surface_maturation_loss",
+        "high_grade_or_definite_dysplasia"
+      ],
+      "prohibited_outputs": [
+        "hypothesis_ranking",
+        "roi_selection",
+        "next_action",
+        "final_diagnosis",
+        "final_label_mapping",
+        "whole_slide_absence_from_single_roi",
+        "D_suffix_label"
+      ],
+      "task_profiles": [
+        {
+          "task_profile": "high_grade_dysplasia_assessment",
+          "allowed_primary_magnifications": [20],
+          "allowed_context_views": [
+            {
+              "view_role": "parent_architecture",
+              "allowed_magnifications": [10],
+              "max_count": 1
+            }
+          ],
+          "target_feature_allowlist": [
+            "nuclear_stratification",
+            "hyperchromasia",
+            "loss_of_polarity",
+            "marked_cytologic_atypia",
+            "mitotic_activity",
+            "cribriform_or_complex_crowding",
+            "high_grade_focus",
+            "necrosis_or_dirty_necrosis",
+            "surface_maturation_loss",
+            "high_grade_or_definite_dysplasia"
+          ],
+          "incidental_feature_allowlist": []
+        }
+      ]
+    },
+    {
+      "reviewer": "InflammatoryReactiveReviewer",
+      "prompt_id": "inflammatory_reactive_reviewer",
+      "prompt_version": "inflammatory_reactive_reviewer_v1",
+      "observation_schema_version": "reviewer_observation_v1",
+      "feature_allowlist": [
+        "erosion",
+        "ulceration",
+        "granulation_tissue",
+        "mixed_inflammation",
+        "lymphoid_or_stromal_dominance",
+        "reactive_regenerative_change",
+        "architectural_distortion_from_injury",
+        "adenomatous_architecture_absent",
+        "serrated_architecture_absent",
+        "dysplasia_not_evaluable_due_to_reactive_change"
+      ],
+      "prohibited_outputs": [
+        "hypothesis_ranking",
+        "roi_selection",
+        "next_action",
+        "final_diagnosis",
+        "final_label_mapping",
+        "whole_slide_absence_from_single_roi"
+      ],
+      "task_profiles": [
+        {
+          "task_profile": "inflammatory_overview",
+          "allowed_primary_magnifications": [2.5, 5],
+          "allowed_context_views": [
+            {
+              "view_role": "adjacent_mucosa",
+              "allowed_magnifications": [2.5, 5],
+              "max_count": 1
+            }
+          ],
+          "target_feature_allowlist": [
+            "erosion",
+            "ulceration",
+            "granulation_tissue",
+            "mixed_inflammation",
+            "lymphoid_or_stromal_dominance"
+          ],
+          "incidental_feature_allowlist": [
+            "reactive_regenerative_change",
+            "architectural_distortion_from_injury"
+          ]
+        },
+        {
+          "task_profile": "reactive_mimic_resolution",
+          "allowed_primary_magnifications": [5, 10],
+          "allowed_context_views": [
+            {
+              "view_role": "parent_architecture",
+              "allowed_magnifications": [2.5, 5],
+              "max_count": 1
+            },
+            {
+              "view_role": "adjacent_mucosa",
+              "allowed_magnifications": [5, 10],
+              "max_count": 1
+            }
+          ],
+          "target_feature_allowlist": [
+            "reactive_regenerative_change",
+            "architectural_distortion_from_injury",
+            "adenomatous_architecture_absent",
+            "serrated_architecture_absent",
+            "dysplasia_not_evaluable_due_to_reactive_change",
+            "mixed_inflammation"
+          ],
+          "incidental_feature_allowlist": [
+            "erosion",
+            "ulceration",
+            "granulation_tissue",
+            "lymphoid_or_stromal_dominance"
+          ]
+        }
+      ]
+    }
+  ]
+}

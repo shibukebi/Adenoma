@@ -1,0 +1,28 @@
+{
+  "schema_version": "reviewer_task_request_v1",
+  "request_id": "review_request_quality_001",
+  "action_id": "action_quality_001",
+  "plan_id": "plan_reviewer_fixture_001",
+  "question_id": "question_roi_evaluability_001",
+  "snapshot_id": "snapshot_001",
+  "reviewer": "QualityMucosaReviewer",
+  "model_input": {
+    "task_profile": "overview_evaluability",
+    "target_features": [
+      "reviewable_mucosa",
+      "epithelium_present",
+      "fold_or_blur_limited"
+    ],
+    "primary_roi": {
+      "roi_id": "roi_quality_2p5x_001",
+      "image_id": "image_quality_001",
+      "image_ref": "artifact://reviewer-fixtures/roi_quality_2p5x_001.png",
+      "image_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "level0_bbox": [1000, 1200, 5096, 5296],
+      "magnification": 2.5,
+      "pixel_dimensions": [1024, 1024],
+      "mpp": 4.0
+    },
+    "context_views": []
+  }
+}

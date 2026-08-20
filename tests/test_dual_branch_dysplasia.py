@@ -23,6 +23,9 @@ class DualBranchDysplasiaTest(unittest.TestCase):
                         "abnormal_maturation",
                     ],
                     "conventional_adenoma_criteria": [
+                        "tubular_architecture",
+                        "villous_component",
+                        "high_villous_component",
                         "tubular_or_tubulovillous_architecture",
                         "crowded_adenomatous_glands",
                         "pencillate_hyperchromatic_nuclei",
@@ -32,6 +35,8 @@ class DualBranchDysplasiaTest(unittest.TestCase):
                         "hyperchromasia",
                         "mitotic_activity_atypia",
                         "architectural_crowding",
+                        "high_grade_focus",
+                        "marked_cytologic_atypia",
                     ],
                 }
             }
@@ -53,6 +58,7 @@ class DualBranchDysplasiaTest(unittest.TestCase):
                             "conventional_dysplasia_hits": {
                                 "nuclear_enlargement_stratification": "supporting",
                                 "hyperchromasia": "supporting",
+                                "architectural_crowding": "supporting",
                             },
                         },
                     }
@@ -66,7 +72,9 @@ class DualBranchDysplasiaTest(unittest.TestCase):
         hierarchy = output["hierarchical_prediction"]
         self.assertFalse(hierarchy["serrated_dysplasia_assessment"]["positive"])
         self.assertTrue(hierarchy["conventional_dysplasia_assessment"]["positive"])
-        self.assertEqual(hierarchy["final_case_assessment"]["label"], "Others+dysplasia")
+        self.assertEqual(hierarchy["final_case_assessment"]["label"], "TAD")
+        self.assertEqual(hierarchy["final_case_assessment"]["legacy_label"], "Others+dysplasia")
+        self.assertEqual(hierarchy["final_11_class"], "TAD")
 
     def test_serrated_dysplasia_maps_to_ssl_dysplasia_only(self):
         backend = HeuristicStageBackend()
@@ -90,6 +98,7 @@ class DualBranchDysplasiaTest(unittest.TestCase):
                             "serrated_dysplasia_hits": {
                                 "nuclear_enlargement_stratification": "supporting",
                                 "hyperchromasia": "supporting",
+                                "architectural_crowding": "supporting",
                             },
                         },
                     }
@@ -103,7 +112,9 @@ class DualBranchDysplasiaTest(unittest.TestCase):
         hierarchy = output["hierarchical_prediction"]
         self.assertTrue(hierarchy["serrated_dysplasia_assessment"]["positive"])
         self.assertFalse(hierarchy["conventional_dysplasia_assessment"]["positive"])
-        self.assertEqual(hierarchy["final_case_assessment"]["label"], "SSL+dysplasia")
+        self.assertEqual(hierarchy["final_case_assessment"]["label"], "SSLD")
+        self.assertEqual(hierarchy["final_case_assessment"]["legacy_label"], "SSL+dysplasia")
+        self.assertEqual(hierarchy["final_11_class"], "SSLD")
 
 
 if __name__ == "__main__":

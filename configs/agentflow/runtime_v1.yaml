@@ -1,0 +1,128 @@
+schema_version: agentflow_runtime_v1
+pipeline_mode: evidence_planner_reviewer_chief
+non_clinical: true
+
+mucosa_extractor:
+  implementation: adenoma_agent.mucosa_extractor
+  source_model: uni_prismnet
+  mucosa_threshold: 0.30
+  formal_output: five_x_patch_manifest.jsonl
+
+architecture:
+  canonical_input_scale: 5.0
+  manifest_name: five_x_patch_manifest.jsonl
+  inference_min_mucosa_coverage: 0.30
+  training_min_mucosa_coverage: 0.60
+  checkpoint: null
+  allow_synthetic_checkpoint: false
+  missing_checkpoint_policy: fail_explicitly
+  required_outputs:
+    - evaluable
+    - serrated
+    - tubular
+    - villous
+    - normal_mucosa_present
+    - reactive_inflammatory_present
+    - other_pattern_present
+    - embedding_ref
+    - uncertainty
+
+spatial_evidence:
+  implementation: deterministic_soft_score_v1
+  present_threshold: 0.55
+  absent_threshold: 0.20
+  high_uncertainty_threshold: 0.50
+
+evidence_engine:
+  implementation: deterministic_hypothesis_relative_v1
+  initial_evidence_score: 0.0
+  ranking_transform: softmax_uncalibrated
+  ranking_is_clinical_probability: false
+  contribution_formula: sign_x_diagnostic_weight_x_confidence_x_quality_x_independence
+  overlap_correlation_iou: 0.50
+  true_contradiction_iou: 0.80
+  minimum_correlated_independence: 0.10
+  relation_quality_threshold: 0.50
+  cluster_saturation: max_contribution_per_hypothesis_feature_cluster_direction
+  correction_policy: recompute_from_active_evidence
+
+agent_state:
+  schema_version: agent_state_v1
+  persistence: append_only_full_state_jsonl
+  state_store_schema_version: agent_state_store_jsonl_v1
+  termination_decisions:
+    - continue
+    - sufficient_evidence_stop
+    - budget_stop
+    - unresolved_stop
+    - failure_stop
+
+roi_manager:
+  coordinate_system: level0
+  magnification_to_level0_extent:
+    "2.5": 4096
+    "5.0": 2048
+    "10.0": 1024
+    "20.0": 512
+  planner_may_invent_coordinates: false
+
+planner:
+  pure_single_step_kernel: true
+  max_actions: 8
+  top_hypothesis_margin: 0.10
+  evidence_score_margin: 0.50
+  minimum_required_evidence_quality: 0.50
+  priority_formula: diagnostic_ambiguity_x_discriminator_weight_x_evidence_gap_x_reviewer_availability_x_expected_evidence_quality
+  max_conflict_resolution_rounds: 2
+  action_weights:
+    discriminative_value: 0.35
+    roi_suitability: 0.25
+    spatial_coverage: 0.20
+    normalized_cost: 0.10
+    evidence_redundancy: 0.10
+  stop_reasons:
+    - diagnostic_ready
+    - no_useful_action
+    - budget_exhausted
+    - non_diagnostic_or_quality_limited
+  termination_statuses:
+    - continue
+    - sufficient_evidence_stop
+    - budget_stop
+    - unresolved_stop
+    - failure_stop
+
+reviewers:
+  registry: configs/agentflow/reviewer_registry_v1.json
+  backend: null
+  max_retries_per_reviewer: 1
+  max_schema_repairs: 1
+  retry_same_roi_when_not_evaluable: false
+  json_schema_validation:
+    draft: "2020-12"
+    required_in_production: true
+    optional_dependency: "jsonschema>=4.18"
+  missing_backend_policy: fail_and_append_invocation_failure
+  shared_backend_allowed: true
+  reviewers:
+    - QualityMucosaReviewer
+    - SerratedArchitectureReviewer
+    - TSAReviewer
+    - ConventionalArchitectureReviewer
+    - DysplasiaReviewer
+    - InflammatoryReactiveReviewer
+
+chief:
+  implementation: rule_based_contract_first
+  optional_llm_backend: null
+  knowledge_base: configs/agentflow/knowledge_base_v1.json
+  guideline_entries_status: not_configured
+  free_generation_of_guidelines: false
+
+models_requiring_training_or_validation:
+  mucosal_architecture_classifier:
+    status: training_required
+  dysplasia_hotspot_model:
+    status: training_or_strong_validation_required
+  reviewer_vlm:
+    status: existing_backbone_requires_task_level_validation

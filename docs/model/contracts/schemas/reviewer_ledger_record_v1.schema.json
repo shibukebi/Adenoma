@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "reviewer_ledger_record_v1.schema.json",
+  "title": "ReviewerLedgerRecordV1",
+  "description": "Orchestrator-enriched reviewer ledger record represented as evidence or invocation_failure.",
+  "oneOf": [
+    { "$ref": "#/$defs/EvidenceRecord" },
+    { "$ref": "#/$defs/InvocationFailureRecord" }
+  ],
+  "$defs": {
+    "ReasoningUse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["pending", "used", "not_used"]
+        },
+        "chief_review_id": { "type": "string", "minLength": 1 }
+      }
+    },
+    "EvidenceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "record_id",
+        "record_type",
+        "request_id",
+        "action_id",
+        "plan_id",
+        "question_id",
+        "snapshot_id",
+        "reviewer",
+        "task_profile",
+        "provenance",
+        "observation",
+        "reasoning_use"
+      ],
+      "properties": {
+        "schema_version": { "const": "reviewer_ledger_record_v1" },
+        "record_id": { "type": "string", "minLength": 1 },
+        "record_type": { "const": "evidence" },
+        "request_id": { "type": "string", "minLength": 1 },
+        "action_id": { "type": "string", "minLength": 1 },
+        "plan_id": { "type": "string", "minLength": 1 },
+        "question_id": { "type": "string", "minLength": 1 },
+        "snapshot_id": { "type": "string", "minLength": 1 },
+        "reviewer": {
+          "$ref": "reviewer_common_v1.schema.json#/$defs/ReviewerName"
+        },
+        "task_profile": {
+          "$ref": "reviewer_common_v1.schema.json#/$defs/TaskProfile"
+        },
+        "provenance": {
+          "$ref": "reviewer_common_v1.schema.json#/$defs/LedgerProvenance"
+        },
+        "observation": { "$ref": "reviewer_observation_v1.schema.json" },
+        "reasoning_use": { "$ref": "#/$defs/ReasoningUse" }
+      }
+    },
+    "InvocationFailureRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "record_id",
+        "record_type",
+        "request_id",
+        "action_id",
+        "plan_id",
+        "question_id",
+        "snapshot_id",
+        "reviewer",
+        "task_profile",
+        "provenance",
+        "failure"
+      ],
+      "properties": {
+        "schema_version": { "const": "reviewer_ledger_record_v1" },
+        "record_id": { "type": "string", "minLength": 1 },
+        "record_type": { "const": "invocation_failure" },
+        "request_id": { "type": "string", "minLength": 1 },
+        "action_id": { "type": "string", "minLength": 1 },
+        "plan_id": { "type": "string", "minLength": 1 },
+        "question_id": { "type": "string", "minLength": 1 },
+        "snapshot_id": { "type": "string", "minLength": 1 },
+        "reviewer": {
+          "$ref": "reviewer_common_v1.schema.json#/$defs/ReviewerName"
+        },
+        "task_profile": {
+          "$ref": "reviewer_common_v1.schema.json#/$defs/TaskProfile"
+        },
+        "provenance": {
+          "$ref": "reviewer_common_v1.schema.json#/$defs/LedgerProvenance"
+        },
+        "failure": {
+          "$ref": "reviewer_common_v1.schema.json#/$defs/InvocationFailure"
+        }
+      }
+    }
+  }
+}

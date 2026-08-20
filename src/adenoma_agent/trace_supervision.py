@@ -8,7 +8,100 @@ from adenoma_agent.utils import ensure_dir, read_json, write_json
 
 
 TRACE_LABEL_RUBRIC = {
-    "ssl_suspicious_mucosa": {
+    "epithelial_neoplasia_suspicious": {
+        "default_priority": 4,
+        "default_high_mag": True,
+        "positive_cues": [
+            "epithelial",
+            "neoplasia",
+            "neoplastic",
+            "tum",
+            "adenoma",
+            "serrated",
+            "lesion",
+            "reviewable atypical epithelium",
+        ],
+        "observation_points": [
+            "resolve serrated versus conventional morphology",
+            "assess epithelial architecture at higher magnification",
+            "keep serrated and conventional branches open",
+        ],
+    },
+    "mucus_rich_or_pale_context": {
+        "default_priority": 4,
+        "default_high_mag": True,
+        "positive_cues": [
+            "mucus",
+            "mucin",
+            "pale",
+            "mucus-rich",
+            "mucosa requiring morphology resolution",
+        ],
+        "observation_points": [
+            "determine whether mucus-rich mucosa reflects serrated architecture",
+            "check epithelial architecture before branch assignment",
+        ],
+    },
+    "uncertain_reviewable_mucosa": {
+        "default_priority": 3,
+        "default_high_mag": True,
+        "positive_cues": [
+            "uncertain",
+            "reviewable",
+            "low confidence",
+            "ambiguous mucosa",
+        ],
+        "observation_points": [
+            "resolve ambiguous reviewable mucosa",
+            "avoid early serrated versus conventional branch lock",
+        ],
+    },
+    "inflammatory_or_stromal_context": {
+        "default_priority": 2,
+        "default_high_mag": False,
+        "positive_cues": [
+            "inflammatory",
+            "lymphocyte",
+            "stroma",
+            "reactive",
+            "stromal",
+        ],
+        "observation_points": [
+            "confirm inflammatory or stromal context",
+            "exclude hidden epithelial lesion if sampled",
+        ],
+    },
+    "reviewable_normal_mucosa": {
+        "default_priority": 1,
+        "default_high_mag": False,
+        "positive_cues": [
+            "normal",
+            "reviewable normal",
+            "benign mucosa",
+            "norm",
+        ],
+        "observation_points": [
+            "confirm benign architecture if sampled",
+            "low-priority reviewable mucosa",
+        ],
+    },
+    "background_or_artifact": {
+        "default_priority": 0,
+        "default_high_mag": False,
+        "positive_cues": [
+            "background",
+            "artifact",
+            "adipose",
+            "debris",
+            "muscle",
+            "discard",
+        ],
+        "observation_points": [
+            "coverage-preserving discard group",
+            "low-value background or artifact",
+        ],
+    },
+    "serrated": {
         "default_priority": 4,
         "default_high_mag": True,
         "positive_cues": [
@@ -36,7 +129,7 @@ TRACE_LABEL_RUBRIC = {
             "abnormal maturation",
         ],
     },
-    "conventional_adenoma_like": {
+    "conventional": {
         "default_priority": 3,
         "default_high_mag": True,
         "positive_cues": [
@@ -57,26 +150,7 @@ TRACE_LABEL_RUBRIC = {
             "conventional dysplasia branch review",
         ],
     },
-    "inflammatory_polyp_like": {
-        "default_priority": 2,
-        "default_high_mag": False,
-        "positive_cues": [
-            "inflammatory",
-            "inflamed",
-            "reactive",
-            "erosion",
-            "granulation",
-            "polyp-like",
-            "inflammation",
-        ],
-        "observation_points": [
-            "reactive changes",
-            "inflammation",
-            "erosion or granulation tissue",
-            "exclude dysplasia if uncertain",
-        ],
-    },
-    "normal_mucosa": {
+    "normal": {
         "default_priority": 1,
         "default_high_mag": False,
         "positive_cues": [
@@ -92,7 +166,7 @@ TRACE_LABEL_RUBRIC = {
             "low-priority non-lesional mucosa",
         ],
     },
-    "background_artifact_stroma": {
+    "background": {
         "default_priority": 0,
         "default_high_mag": False,
         "positive_cues": [
@@ -115,27 +189,219 @@ TRACE_LABEL_RUBRIC = {
 }
 
 FIXED_DIAGNOSTIC_PRIORITY = {
-    "background_artifact_stroma": 0,
-    "normal_mucosa": 1,
-    "inflammatory_polyp_like": 2,
-    "conventional_adenoma_like": 3,
-    "ssl_suspicious_mucosa": 4,
+    "background_or_artifact": 0,
+    "reviewable_normal_mucosa": 1,
+    "inflammatory_or_stromal_context": 2,
+    "uncertain_reviewable_mucosa": 3,
+    "mucus_rich_or_pale_context": 4,
+    "epithelial_neoplasia_suspicious": 4,
+    "background": 0,
+    "normal": 1,
+    "conventional": 3,
+    "serrated": 4,
 }
 
 LESION_TRACE_LABELS = {
-    "ssl_suspicious_mucosa",
-    "conventional_adenoma_like",
-    "inflammatory_polyp_like",
+    "serrated",
+    "conventional",
+    "epithelial_neoplasia_suspicious",
+    "mucus_rich_or_pale_context",
+    "uncertain_reviewable_mucosa",
 }
 
 TRACE_LABEL_COLORS = {
-    "ssl_suspicious_mucosa": {"fill": "rgba(220, 53, 69, 0.28)", "stroke": "#dc3545", "text": "#7f1d1d"},
-    "conventional_adenoma_like": {"fill": "rgba(245, 158, 11, 0.28)", "stroke": "#f59e0b", "text": "#78350f"},
-    "inflammatory_polyp_like": {"fill": "rgba(59, 130, 246, 0.28)", "stroke": "#3b82f6", "text": "#1e3a8a"},
-    "normal_mucosa": {"fill": "rgba(16, 185, 129, 0.24)", "stroke": "#10b981", "text": "#064e3b"},
-    "background_artifact_stroma": {"fill": "rgba(107, 114, 128, 0.24)", "stroke": "#6b7280", "text": "#374151"},
+    "epithelial_neoplasia_suspicious": {"fill": "rgba(220, 38, 38, 0.26)", "stroke": "#dc2626", "text": "#7f1d1d"},
+    "mucus_rich_or_pale_context": {"fill": "rgba(14, 165, 233, 0.24)", "stroke": "#0ea5e9", "text": "#075985"},
+    "uncertain_reviewable_mucosa": {"fill": "rgba(168, 85, 247, 0.22)", "stroke": "#a855f7", "text": "#581c87"},
+    "inflammatory_or_stromal_context": {"fill": "rgba(20, 184, 166, 0.22)", "stroke": "#14b8a6", "text": "#134e4a"},
+    "reviewable_normal_mucosa": {"fill": "rgba(16, 185, 129, 0.24)", "stroke": "#10b981", "text": "#064e3b"},
+    "background_or_artifact": {"fill": "rgba(107, 114, 128, 0.24)", "stroke": "#6b7280", "text": "#374151"},
+    "serrated": {"fill": "rgba(220, 53, 69, 0.28)", "stroke": "#dc3545", "text": "#7f1d1d"},
+    "conventional": {"fill": "rgba(245, 158, 11, 0.28)", "stroke": "#f59e0b", "text": "#78350f"},
+    "normal": {"fill": "rgba(16, 185, 129, 0.24)", "stroke": "#10b981", "text": "#064e3b"},
+    "background": {"fill": "rgba(107, 114, 128, 0.24)", "stroke": "#6b7280", "text": "#374151"},
     "unknown": {"fill": "rgba(148, 163, 184, 0.24)", "stroke": "#64748b", "text": "#334155"},
 }
+
+GLOBAL_SCREENING_SINGLE_MODEL_STATUS = "single_model_trace"
+GLOBAL_SCREENING_CONCH_ONLY_STATUS = "conch_only_trace"
+GLOBAL_SCREENING_DUAL_MODEL_STATUSES = {"strong_agreement", "risk_disagreement", "low_value_disagreement"}
+GLOBAL_SCREENING_CONSENSUS_SCORE_ORIGIN = "consensus_fusion"
+GLOBAL_SCREENING_LEGACY_SCORE_ORIGIN = "normalized_diagnostic_priority"
+GLOBAL_SCREENING_LABEL_RANK = {
+    "background_or_artifact": 0,
+    "reviewable_normal_mucosa": 1,
+    "inflammatory_or_stromal_context": 2,
+    "uncertain_reviewable_mucosa": 3,
+    "mucus_rich_or_pale_context": 4,
+    "epithelial_neoplasia_suspicious": 4,
+    "background": 0,
+    "normal": 1,
+    "conventional": 3,
+    "serrated": 4,
+}
+GLOBAL_SCREENING_LESION_LABELS = {"serrated", "conventional", "epithelial_neoplasia_suspicious", "mucus_rich_or_pale_context", "uncertain_reviewable_mucosa"}
+GLOBAL_SCREENING_PLACEHOLDER_LABELS = {"", "not_available_in_this_run", "n/a", "na", "none"}
+
+
+def _normalize_global_screening_label(label):
+    label = str(label or "").strip()
+    legacy_map = {
+        "ssl_suspicious_mucosa": "serrated",
+        "ssl_high_priority_mucosa": "serrated",
+        "ssl_like_mucosa": "serrated",
+        "hp_like_mucosa": "serrated",
+        "tsa_like_mucosa": "serrated",
+        "unclassified_serrated_like_mucosa": "serrated",
+        "conventional_adenoma_like": "conventional",
+        "tubular_adenoma_like": "conventional",
+        "tubulovillous_adenoma_like": "conventional",
+        "inflammatory_polyp_like": "normal",
+        "normal_mucosa": "normal",
+        "background_artifact_stroma": "background",
+        "ADI": "background_or_artifact",
+        "BACK": "background_or_artifact",
+        "DEB": "background_or_artifact",
+        "MUS": "background_or_artifact",
+        "NORM": "reviewable_normal_mucosa",
+        "LYM": "inflammatory_or_stromal_context",
+        "STR": "inflammatory_or_stromal_context",
+        "MUC": "mucus_rich_or_pale_context",
+        "TUM": "epithelial_neoplasia_suspicious",
+    }
+    label = legacy_map.get(label, legacy_map.get(label.upper(), label))
+    return label if label in TRACE_LABEL_RUBRIC else ""
+
+
+def _is_global_screening_lesion_label(label):
+    return str(label or "") in GLOBAL_SCREENING_LESION_LABELS
+
+
+def _looks_like_dual_model_global_screening_patch(patch):
+    if not isinstance(patch, dict):
+        return False
+    agreement_status = str(patch.get("agreement_status", "")).strip()
+    score_origin = str(patch.get("score_origin", "")).strip()
+    if agreement_status == GLOBAL_SCREENING_CONCH_ONLY_STATUS or score_origin == "conch_crc100k_neutral_mapping":
+        return False
+    conch_label = _normalize_global_screening_label(patch.get("conch_region_semantic"))
+    patho_label = _normalize_global_screening_label(patch.get("pathoreasoner_r1_region_semantic"))
+    if score_origin == GLOBAL_SCREENING_CONSENSUS_SCORE_ORIGIN:
+        return True
+    if agreement_status in GLOBAL_SCREENING_DUAL_MODEL_STATUSES:
+        return True
+    if conch_label and patho_label:
+        return True
+    if conch_label or patho_label:
+        return agreement_status != GLOBAL_SCREENING_SINGLE_MODEL_STATUS
+    return False
+
+
+def classify_global_screening_agreement(conch_label, patho_label):
+    conch_label = _normalize_global_screening_label(conch_label)
+    patho_label = _normalize_global_screening_label(patho_label)
+    if not conch_label or not patho_label:
+        return GLOBAL_SCREENING_SINGLE_MODEL_STATUS
+    if conch_label == patho_label:
+        return "strong_agreement"
+    if _is_global_screening_lesion_label(conch_label) or _is_global_screening_lesion_label(patho_label):
+        return "risk_disagreement"
+    return "low_value_disagreement"
+
+
+def fuse_global_screening_region_semantic(conch_label, patho_label):
+    conch_label = _normalize_global_screening_label(conch_label)
+    patho_label = _normalize_global_screening_label(patho_label)
+    candidates = [label for label in (conch_label, patho_label) if label]
+    if not candidates:
+        return "background"
+    return max(candidates, key=lambda label: GLOBAL_SCREENING_LABEL_RANK.get(label, -1))
+
+
+def expected_global_screening_priority(region_semantic, agreement_status):
+    region_semantic = _normalize_global_screening_label(region_semantic)
+    agreement_status = str(agreement_status or "").strip()
+    if region_semantic in {"epithelial_neoplasia_suspicious", "mucus_rich_or_pale_context"}:
+        return 4
+    if region_semantic == "uncertain_reviewable_mucosa":
+        return 3
+    if region_semantic == "inflammatory_or_stromal_context":
+        return 2
+    if region_semantic == "reviewable_normal_mucosa":
+        return 1
+    if region_semantic == "background_or_artifact":
+        return 0
+    if region_semantic == "serrated":
+        return 4
+    if region_semantic == "conventional":
+        return 4 if agreement_status == "risk_disagreement" else 3
+    if region_semantic == "normal":
+        return 1
+    return 0
+
+
+def expected_global_screening_require_high_magnification(region_semantic, agreement_status):
+    region_semantic = _normalize_global_screening_label(region_semantic)
+    agreement_status = str(agreement_status or "").strip()
+    if region_semantic in {"epithelial_neoplasia_suspicious", "mucus_rich_or_pale_context", "uncertain_reviewable_mucosa"}:
+        return True
+    if region_semantic in {"serrated", "conventional"}:
+        return agreement_status in {"strong_agreement", "risk_disagreement"}
+    return False
+
+
+def build_global_screening_fusion_reasoning(conch_label, patho_label, fused_label, agreement_status, diagnostic_priority):
+    conch_label = _normalize_global_screening_label(conch_label) or str(conch_label or "").strip() or "unknown"
+    patho_label = _normalize_global_screening_label(patho_label) or str(patho_label or "").strip() or "unknown"
+    fused_label = _normalize_global_screening_label(fused_label) or "background"
+    agreement_status = str(agreement_status or "").strip() or GLOBAL_SCREENING_SINGLE_MODEL_STATUS
+    if agreement_status == "strong_agreement":
+        return "CONCH and PathoReasoner-R1 both selected {0}; consensus keeps {0} with priority {1}.".format(
+            fused_label,
+            int(diagnostic_priority),
+        )
+    if agreement_status == "risk_disagreement":
+        return "CONCH={0} and PathoReasoner-R1={1} disagree on a lesion-relevant patch; conservative fusion keeps {2} and escalates priority to {3}.".format(
+            conch_label,
+            patho_label,
+            fused_label,
+            int(diagnostic_priority),
+        )
+    if agreement_status == "low_value_disagreement":
+        return "CONCH={0} and PathoReasoner-R1={1} disagree only in low-value territory; conservative fusion keeps {2} at priority {3}.".format(
+            conch_label,
+            patho_label,
+            fused_label,
+            int(diagnostic_priority),
+        )
+    return "Single-model trace output was retained for {0} with priority {1}.".format(fused_label, int(diagnostic_priority))
+
+
+def derive_global_screening_fusion(conch_label, patho_label):
+    conch_label = _normalize_global_screening_label(conch_label)
+    patho_label = _normalize_global_screening_label(patho_label)
+    if not conch_label or not patho_label:
+        return None
+    agreement_status = classify_global_screening_agreement(conch_label, patho_label)
+    fused_label = fuse_global_screening_region_semantic(conch_label, patho_label)
+    diagnostic_priority = expected_global_screening_priority(fused_label, agreement_status)
+    require_high_magnification = expected_global_screening_require_high_magnification(fused_label, agreement_status)
+    return {
+        "conch_region_semantic": conch_label,
+        "pathoreasoner_r1_region_semantic": patho_label,
+        "agreement_status": agreement_status,
+        "region_semantic": fused_label,
+        "diagnostic_priority": diagnostic_priority,
+        "require_high_magnification": require_high_magnification,
+        "score_origin": GLOBAL_SCREENING_CONSENSUS_SCORE_ORIGIN,
+        "fusion_reasoning": build_global_screening_fusion_reasoning(
+            conch_label,
+            patho_label,
+            fused_label,
+            agreement_status,
+            diagnostic_priority,
+        ),
+    }
 
 
 def _lower_text(value):
@@ -213,7 +479,7 @@ def build_image_only_teacher_prompt(teacher_request):
         "- Every selected patch must appear exactly once.",
         "- No duplicate patch_id values.",
         "- No patch_id outside the exact allowed vocabulary.",
-        "- Low-value tissue/background still receives one assignment, usually background_artifact_stroma.",
+        "- Low-value tissue/background still receives one assignment, usually background.",
         "",
         "Exact allowed patch vocabulary:",
         selected_vocab,
@@ -238,8 +504,8 @@ def build_image_only_teacher_prompt(teacher_request):
         [
             "",
             "Semantic constraints:",
-            "- Do not call a patch ssl_suspicious_mucosa only because it is at an edge or upper-left location.",
-            "- SSL suspicion requires visual morphology cues such as serrated architecture, mucus cap, pale flat mucosa, basal crypt abnormality, or crypt distortion.",
+            "- Do not call a patch serrated only because it is at an edge or upper-left location.",
+            "- Serrated routing requires visual morphology cues such as serrated architecture, mucus cap, pale flat mucosa, basal crypt abnormality, or crypt distortion.",
             "- Do not make final diagnosis claims. Describe image-only morphology and review priority.",
             "",
             "Required output fields per patch:",
@@ -258,7 +524,7 @@ def build_image_only_teacher_prompt(teacher_request):
                     "patches": [
                         {
                             "patch_id": [0, 0],
-                            "region_semantic": "background_artifact_stroma",
+                            "region_semantic": "background",
                             "name": "Masked or low-value background",
                             "description": "Black masked or low-value area kept for coverage, not lesion evidence.",
                             "require_high_magnification": False,
@@ -696,22 +962,48 @@ def score_patch_field_consistency(payload):
             continue
         label = str(patch.get("region_semantic", ""))
         patch_warnings = []
+        dual_model_mode = _looks_like_dual_model_global_screening_patch(patch)
         priority_value = patch.get("diagnostic_priority", 0)
         try:
             priority = int(priority_value)
         except Exception:
             priority = None
             patch_warnings.append("invalid_priority")
-        expected_priority = FIXED_DIAGNOSTIC_PRIORITY.get(label)
-        if priority is not None and expected_priority is not None and priority != expected_priority:
-            patch_warnings.append("invalid_priority")
         high_mag = bool(patch.get("require_high_magnification", False))
-        if label == "background_artifact_stroma" and ((priority is not None and priority != 0) or high_mag):
-            patch_warnings.append("background_priority_highmag_conflict")
-        if label == "ssl_suspicious_mucosa" and ((priority is not None and priority != 4) or not high_mag):
-            patch_warnings.append("ssl_priority_highmag_conflict")
-        if label == "normal_mucosa" and priority is not None and priority != 1:
-            patch_warnings.append("normal_priority_too_high")
+        if dual_model_mode:
+            conch_label = _normalize_global_screening_label(patch.get("conch_region_semantic"))
+            patho_label = _normalize_global_screening_label(patch.get("pathoreasoner_r1_region_semantic"))
+            if not conch_label or not patho_label:
+                patch_warnings.append("missing_dual_model_fields")
+            else:
+                expected = derive_global_screening_fusion(conch_label, patho_label)
+                if expected is None:
+                    patch_warnings.append("missing_dual_model_fields")
+                else:
+                    actual_agreement = str(patch.get("agreement_status", "")).strip()
+                    if actual_agreement != expected["agreement_status"]:
+                        patch_warnings.append("invalid_agreement_status")
+                    if not str(patch.get("fusion_reasoning", "")).strip():
+                        patch_warnings.append("missing_fusion_reasoning")
+                    if label != expected["region_semantic"]:
+                        patch_warnings.append("invalid_fused_region_semantic")
+                    if priority is not None and priority != expected["diagnostic_priority"]:
+                        patch_warnings.append("invalid_priority")
+                    if high_mag != expected["require_high_magnification"]:
+                        patch_warnings.append("invalid_highmag")
+                    actual_score_origin = str(patch.get("score_origin", "")).strip()
+                    if actual_score_origin != expected["score_origin"]:
+                        patch_warnings.append("invalid_score_origin")
+        else:
+            expected_priority = FIXED_DIAGNOSTIC_PRIORITY.get(label)
+            if priority is not None and expected_priority is not None and priority != expected_priority:
+                patch_warnings.append("invalid_priority")
+            if label == "background" and ((priority is not None and priority != 0) or high_mag):
+                patch_warnings.append("background_priority_highmag_conflict")
+            if label == "serrated" and ((priority is not None and priority != 4) or not high_mag):
+                patch_warnings.append("serrated_priority_highmag_conflict")
+            if label == "normal" and priority is not None and priority != 1:
+                patch_warnings.append("normal_priority_too_high")
         score -= 4 * len(patch_warnings)
         warnings.extend(
             {
@@ -744,6 +1036,7 @@ def score_patch_semantics(payload):
         label = str(patch.get("region_semantic", ""))
         label_counts[label] = label_counts.get(label, 0) + 1
         patch_warnings = []
+        dual_model_mode = _looks_like_dual_model_global_screening_patch(patch)
         if label not in TRACE_LABEL_RUBRIC:
             patch_warnings.append("unknown_region_semantic")
         rubric = TRACE_LABEL_RUBRIC.get(label, {})
@@ -754,6 +1047,22 @@ def score_patch_semantics(payload):
         observation_points = patch.get("observation_points", [])
         if not isinstance(observation_points, list) or not [item for item in observation_points if str(item).strip()]:
             patch_warnings.append("empty_observation_points")
+        if dual_model_mode:
+            conch_label = _normalize_global_screening_label(patch.get("conch_region_semantic"))
+            patho_label = _normalize_global_screening_label(patch.get("pathoreasoner_r1_region_semantic"))
+            if not conch_label or not patho_label:
+                patch_warnings.append("missing_dual_model_fields")
+            else:
+                expected = derive_global_screening_fusion(conch_label, patho_label)
+                if expected is None:
+                    patch_warnings.append("missing_dual_model_fields")
+                else:
+                    if str(patch.get("agreement_status", "")).strip() != expected["agreement_status"]:
+                        patch_warnings.append("invalid_agreement_status")
+                    if not str(patch.get("fusion_reasoning", "")).strip():
+                        patch_warnings.append("missing_fusion_reasoning")
+                    if label != expected["region_semantic"]:
+                        patch_warnings.append("invalid_fused_region_semantic")
         priority = patch.get("diagnostic_priority", 0)
         try:
             priority = int(priority)
@@ -761,16 +1070,16 @@ def score_patch_semantics(payload):
             priority = 0
             patch_warnings.append("invalid_priority")
         high_mag = bool(patch.get("require_high_magnification", False))
-        if label == "background_artifact_stroma" and (priority != 0 or high_mag):
+        if label == "background" and (priority != 0 or high_mag):
             patch_warnings.append("background_priority_highmag_conflict")
-        if label == "ssl_suspicious_mucosa" and (priority < 3 or not high_mag):
-            patch_warnings.append("ssl_priority_highmag_conflict")
-        if label == "normal_mucosa" and priority > 2:
+        if label == "serrated" and (priority < 3 or not high_mag):
+            patch_warnings.append("serrated_priority_highmag_conflict")
+        if label == "normal" and priority > 2:
             patch_warnings.append("normal_priority_too_high")
-        if label == "ssl_suspicious_mucosa" and "edge" in haystack and not any(
+        if label == "serrated" and "edge" in haystack and not any(
             cue in haystack for cue in ("serrated", "ssl", "mucus", "mucous", "crypt", "pale")
         ):
-            patch_warnings.append("ssl_edge_only_risk")
+            patch_warnings.append("serrated_edge_only_risk")
         score -= 4 * len(patch_warnings)
         warnings.extend(
             {
@@ -837,7 +1146,7 @@ def score_cluster_granularity(clusters):
     return {"aggregation_score": score, "warnings": warnings, "over_merge_count": over_merge_count}
 
 
-def score_trace_case(teacher_payload, grid_meta, clusters=None, pathreasoner_payload=None):
+def score_trace_case(teacher_payload, grid_meta, clusters=None, pathreasoner_payload=None, conch_payload=None):
     structure = validate_patch_assignments(teacher_payload, grid_meta)
     semantics = score_patch_semantics(teacher_payload)
     field_consistency = score_patch_field_consistency(teacher_payload)
@@ -849,6 +1158,11 @@ def score_trace_case(teacher_payload, grid_meta, clusters=None, pathreasoner_pay
     if not structure["coverage_ok"]:
         warnings.append({"warning": "coverage_failure", "details": structure})
     disagreement = None
+    dual_source_disagreement = None
+    if conch_payload and pathreasoner_payload:
+        dual_source_disagreement = compare_patch_labels(conch_payload, pathreasoner_payload)
+        if dual_source_disagreement["disagreement_rate"] > 0.25:
+            warnings.append({"warning": "conch_pathreasoner_high_disagreement", "details": dual_source_disagreement})
     if pathreasoner_payload:
         disagreement = compare_patch_labels(teacher_payload, pathreasoner_payload)
         if disagreement["disagreement_rate"] > 0.25:
@@ -868,7 +1182,10 @@ def score_trace_case(teacher_payload, grid_meta, clusters=None, pathreasoner_pay
         "field_consistency": field_consistency,
         "aggregation": aggregation,
         "teacher_pathreasoner_disagreement": disagreement,
-        "review_recommended": total < 85 or any(item.get("region_semantic") == "ssl_suspicious_mucosa" for item in warnings),
+        "conch_pathreasoner_disagreement": dual_source_disagreement,
+        "review_recommended": total < 85
+        or any(item.get("region_semantic") == "serrated" for item in warnings)
+        or any(item.get("warning") in {"conch_pathreasoner_high_disagreement", "teacher_pathreasoner_high_disagreement"} for item in warnings),
         "warnings": warnings,
     }
 
@@ -919,8 +1236,9 @@ def score_slide_label_consistency(payload, slide_label_context):
         for patch in patches
         if isinstance(patch, dict) and str(patch.get("region_semantic", ""))
     ]
-    has_ssl = "ssl_suspicious_mucosa" in labels
-    has_conventional = "conventional_adenoma_like" in labels
+    normalized_labels = [_normalize_global_screening_label(label) for label in labels]
+    has_ssl = "serrated" in normalized_labels
+    has_conventional = "conventional" in normalized_labels
     lesion_labels = [label for label in labels if label in LESION_TRACE_LABELS]
     warnings = []
     raw_label = _lower_text(context.get("label"))
@@ -1042,6 +1360,11 @@ def build_candidate_diff_view(candidate_payloads):
                     "name": patch.get("name"),
                     "diagnostic_priority": patch.get("diagnostic_priority"),
                     "require_high_magnification": patch.get("require_high_magnification"),
+                    "agreement_status": patch.get("agreement_status"),
+                    "conch_region_semantic": patch.get("conch_region_semantic"),
+                    "pathoreasoner_r1_region_semantic": patch.get("pathoreasoner_r1_region_semantic"),
+                    "fusion_reasoning": patch.get("fusion_reasoning"),
+                    "score_origin": patch.get("score_origin"),
                     "description": patch.get("description"),
                     "observation_points": patch.get("observation_points", []),
                 }
@@ -1074,7 +1397,7 @@ def select_best_candidate(candidate_results, min_auto_pass_score=88, min_agreeme
     selected_score = int(selected.get("score", {}).get("total_score", 0))
     selected_payload = selected.get("payload", {"patches": []})
     has_ssl = any(
-        isinstance(patch, dict) and patch.get("region_semantic") == "ssl_suspicious_mucosa"
+        isinstance(patch, dict) and _normalize_global_screening_label(patch.get("region_semantic")) == "serrated"
         for patch in selected_payload.get("patches", [])
     )
     review_status = "auto_pass"
@@ -1162,7 +1485,16 @@ def read_jsonl(path):
     return rows
 
 
-def export_review_package(case_id, grid_thumbnail_path, grid_metadata_path, teacher_payload, output_dir, pathreasoner_payload=None, score=None):
+def export_review_package(
+    case_id,
+    grid_thumbnail_path,
+    grid_metadata_path,
+    teacher_payload,
+    output_dir,
+    pathreasoner_payload=None,
+    conch_payload=None,
+    score=None,
+):
     output_dir = ensure_dir(output_dir)
     grid_thumbnail_path = Path(grid_thumbnail_path)
     grid_metadata_path = Path(grid_metadata_path)
@@ -1176,6 +1508,8 @@ def export_review_package(case_id, grid_thumbnail_path, grid_metadata_path, teac
     score = score or score_trace_case(teacher_payload, grid_meta, pathreasoner_payload=pathreasoner_payload)
     write_json(output_dir / "teacher_patch_assignments.json", teacher_payload)
     write_json(output_dir / "auto_score.json", score)
+    if conch_payload:
+        write_json(output_dir / "conch_patch_assignments.json", conch_payload)
     if pathreasoner_payload:
         write_json(output_dir / "pathreasoner_patch_assignments.json", pathreasoner_payload)
     review_target = {
@@ -1201,6 +1535,7 @@ def export_candidate_review_package(
     output_dir,
     selection=None,
     pathreasoner_payload=None,
+    conch_payload=None,
     auto_review=None,
 ):
     output_dir = ensure_dir(output_dir)
@@ -1232,6 +1567,8 @@ def export_candidate_review_package(
     )
     if pathreasoner_payload:
         write_json(output_dir / "pathreasoner_patch_assignments.json", pathreasoner_payload)
+    if conch_payload:
+        write_json(output_dir / "conch_patch_assignments.json", conch_payload)
     candidate_payloads = [item.get("payload", {"patches": []}) for item in (auto_review.get("candidates") or candidate_results)]
     diff_view = build_candidate_diff_view(candidate_payloads)
     diff_view["agreement"] = auto_review.get("candidate_agreement", selection.get("agreement", {}))

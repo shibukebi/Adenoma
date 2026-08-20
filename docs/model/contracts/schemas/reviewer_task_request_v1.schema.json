@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "reviewer_task_request_v1.schema.json",
+  "title": "ReviewerTaskRequestV1",
+  "description": "A routed reviewer request whose model-visible payload is limited to neutral task, ROI, context, and feature-disagreement data.",
+  "$comment": "Registry-aware validation enforces reviewer, task profile, feature, scale, and context-view compatibility.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "action_id",
+    "plan_id",
+    "question_id",
+    "snapshot_id",
+    "reviewer",
+    "model_input"
+  ],
+  "properties": {
+    "schema_version": { "const": "reviewer_task_request_v1" },
+    "request_id": { "type": "string", "minLength": 1 },
+    "action_id": { "type": "string", "minLength": 1 },
+    "plan_id": { "type": "string", "minLength": 1 },
+    "question_id": { "type": "string", "minLength": 1 },
+    "snapshot_id": { "type": "string", "minLength": 1 },
+    "reviewer": {
+      "$ref": "reviewer_common_v1.schema.json#/$defs/ReviewerName"
+    },
+    "model_input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_profile",
+        "target_features",
+        "primary_roi",
+        "context_views"
+      ],
+      "properties": {
+        "task_profile": {
+          "$ref": "reviewer_common_v1.schema.json#/$defs/TaskProfile"
+        },
+        "target_features": {
+          "type": "array",
+          "items": {
+            "$ref": "reviewer_common_v1.schema.json#/$defs/FeatureId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "primary_roi": {
+          "$ref": "reviewer_common_v1.schema.json#/$defs/RoiImage"
+        },
+        "context_views": {
+          "type": "array",
+          "items": {
+            "$ref": "reviewer_common_v1.schema.json#/$defs/ContextView"
+          },
+          "maxItems": 3
+        },
+        "feature_disagreements": {
+          "type": "array",
+          "items": {
+            "$ref": "reviewer_common_v1.schema.json#/$defs/FeatureDisagreement"
+          },
+          "minItems": 1,
+          "maxItems": 10
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "version": "agentflow_kb_v1",
+  "evidence_scoring": {
+    "initial_evidence_score": 0.0,
+    "ranking_transform": "softmax_uncalibrated",
+    "default_diagnostic_weight": 0.5,
+    "diagnostic_weights_by_role": {
+      "required": 1.0,
+      "contradictory": 0.75,
+      "supportive": 0.5
+    },
+    "absence_semantics": {
+      "supportive_adequate_absent": "neutral",
+      "required_adequate_absent": "oppose",
+      "contradictory_adequate_absent": "neutral",
+      "uncertain": "uncertain",
+      "not_evaluable": "unresolved"
+    }
+  },
+  "hypotheses": [
+    {
+      "hypothesis_id": "H_SSL",
+      "pathway": "serrated",
+      "subtype": "ssl",
+      "dysplasia_applicability": "class_defining",
+      "supporting_evidence": ["serrated_architecture", "basal_crypt_dilation", "serration_to_crypt_base", "crypt_branching"],
+      "contradictory_evidence": ["surface_limited_serration", "straight_crypt_bases", "ectopic_crypt_formation"],
+      "required_evidence": ["basal_crypt_dilation", "serration_to_crypt_base"],
+      "discriminative_features": ["serration_to_crypt_base", "basal_crypt_dilation"],
+      "final_label_mapping": {"not_supported": "SSL", "supported": "SSLD"}
+    },
+    {
+      "hypothesis_id": "H_HP",
+      "pathway": "serrated",
+      "subtype": "hp",
+      "dysplasia_applicability": "not_class_defining",
+      "supporting_evidence": ["serrated_architecture", "surface_limited_serration", "straight_crypt_bases"],
+      "contradictory_evidence": ["basal_crypt_dilation", "serration_to_crypt_base"],
+      "required_evidence": ["surface_limited_serration", "straight_crypt_bases"],
+      "discriminative_features": ["serration_to_crypt_base", "straight_crypt_bases"],
+      "final_label_mapping": {"not_supported": "HP", "supported": "HP"}
+    },
+    {
+      "hypothesis_id": "H_TSA",
+      "pathway": "serrated",
+      "subtype": "tsa",
+      "dysplasia_applicability": "class_defining",
+      "supporting_evidence": ["serrated_architecture", "ectopic_crypt_formation", "slit_like_serration", "villiform_or_filiform_serrated_architecture", "cytoplasmic_eosinophilia", "pencillate_nuclei"],
+      "contradictory_evidence": ["straight_crypt_bases", "pure_tubular_architecture"],
+      "required_evidence": ["ectopic_crypt_formation", "slit_like_serration"],
+      "discriminative_features": ["ectopic_crypt_formation", "cytoplasmic_eosinophilia"],
+      "final_label_mapping": {"not_supported": "TSA", "supported": "TSAD"}
+    },
+    {
+      "hypothesis_id": "H_USA",
+      "pathway": "serrated",
+      "subtype": "unclassified_serrated_adenoma",
+      "dysplasia_applicability": "not_class_defining",
+      "supporting_evidence": ["serrated_architecture", "mixed_serrated_villous_architecture", "serrated_villous_colocalization"],
+      "contradictory_evidence": ["straight_crypt_bases", "pure_tubular_architecture"],
+      "required_evidence": ["mixed_serrated_villous_architecture"],
+      "discriminative_features": ["mixed_serrated_villous_architecture"],
+      "final_label_mapping": {"not_supported": "Unclassified serrated adenoma", "supported": "Unclassified serrated adenoma"}
+    },
+    {
+      "hypothesis_id": "H_TA",
+      "pathway": "conventional_adenoma",
+      "subtype": "tubular_adenoma",
+      "dysplasia_applicability": "class_defining",
+      "supporting_evidence": ["tubular_architecture", "crowded_adenomatous_glands"],
+      "contradictory_evidence": ["serration_to_crypt_base", "villous_component_present"],
+      "required_evidence": ["tubular_architecture", "crowded_adenomatous_glands"],
+      "discriminative_features": ["substantial_villous_component"],
+      "final_label_mapping": {"not_supported": "Tubular adenoma", "supported": "TAD"}
+    },
+    {
+      "hypothesis_id": "H_TVA",
+      "pathway": "conventional_adenoma",
+      "subtype": "tubulovillous_adenoma",
+      "dysplasia_applicability": "class_defining",
+      "supporting_evidence": ["tubular_architecture", "villous_architecture", "villous_component_present", "tubular_villous_mixing"],
+      "contradictory_evidence": ["surface_limited_serration"],
+      "required_evidence": ["villous_component_present", "tubular_villous_mixing"],
+      "discriminative_features": ["villous_component_present", "tubular_villous_mixing"],
+      "final_label_mapping": {"not_supported": "Tubulovillous adenoma", "supported": "TVAD"}
+    },
+    {
+      "hypothesis_id": "H_INFLAMMATORY",
+      "pathway": "inflammatory",
+      "subtype": "inflammatory_reactive",
+      "dysplasia_applicability": "not_class_defining",
+      "supporting_evidence": ["reactive_inflammatory_context", "erosion", "mixed_inflammation", "reactive_regenerative_change", "adenomatous_architecture_absent", "serrated_architecture_absent"],
+      "contradictory_evidence": ["serration_to_crypt_base", "ectopic_crypt_formation", "crowded_adenomatous_glands"],
+      "required_evidence": ["reactive_regenerative_change", "adenomatous_architecture_absent"],
+      "discriminative_features": ["reactive_regenerative_change", "adenomatous_architecture_absent", "serrated_architecture_absent"],
+      "final_label_mapping": {"not_supported": "Inflammatory", "supported": "Inflammatory"}
+    }
+  ],
+  "questions": [
+    {
+      "question_id": "Q_SSL_HP_CRYPT_BASE",
+      "target_feature": "serration_to_crypt_base",
+      "question": "Does serration extend to the crypt base, with basal crypt distortion or dilation?",
+      "discriminates": ["ssl", "hp"],
+      "expected_effect": {"present": "supports_ssl", "absent_in_adequate_roi": "supports_hp"},
+      "reviewer_id": "SerratedArchitectureReviewer",
+      "task_profile": "ssl_hp_discrimination",
+      "allowed_scales": [5.0, 10.0],
+      "priority": 1.0
+    },
+    {
+      "question_id": "Q_TSA_SIGNATURE",
+      "target_feature": "ectopic_crypt_formation",
+      "question": "Is ectopic crypt formation or another TSA-specific architecture present?",
+      "discriminates": ["tsa", "ssl", "hp", "unclassified_serrated_adenoma"],
+      "expected_effect": {"present": "supports_tsa", "absent_in_adequate_roi": "opposes_tsa"},
+      "reviewer_id": "TSAReviewer",
+      "task_profile": "tsa_architecture",
+      "allowed_scales": [5.0, 10.0],
+      "priority": 0.9
+    },
+    {
+      "question_id": "Q_CONVENTIONAL_VILLOUS",
+      "target_feature": "villous_component_present",
+      "question": "Is a substantial villous component present in this representative architecture ROI?",
+      "discriminates": ["tubular_adenoma", "tubulovillous_adenoma"],
+      "expected_effect": {"present": "supports_tubulovillous", "absent_in_adequate_roi": "supports_tubular"},
+      "reviewer_id": "ConventionalArchitectureReviewer",
+      "task_profile": "tubular_villous_resolution",
+      "allowed_scales": [5.0, 10.0],
+      "priority": 0.9
+    },
+    {
+      "question_id": "Q_INFLAMMATORY_MIMIC",
+      "target_feature": "reactive_regenerative_change",
+      "question": "Are the epithelial changes reactive/regenerative in an inflammatory context without neoplastic architecture?",
+      "discriminates": ["inflammatory_reactive", "ssl", "tubular_adenoma"],
+      "expected_effect": {"present": "supports_inflammatory", "absent_in_adequate_roi": "opposes_inflammatory"},
+      "reviewer_id": "InflammatoryReactiveReviewer",
+      "task_profile": "reactive_mimic_resolution",
+      "allowed_scales": [5.0, 10.0],
+      "priority": 0.7
+    },
+    {
+      "question_id": "Q_DYSPLASIA",
+      "target_feature": "high_grade_or_definite_dysplasia",
+      "question": "Is high-grade or definite dysplasia present in this hotspot?",
+      "discriminates": ["dysplasia_supported", "dysplasia_not_supported"],
+      "expected_effect": {"present": "supports_dysplasia", "absent_in_adequate_roi": "does_not_support_dysplasia"},
+      "reviewer_id": "DysplasiaReviewer",
+      "task_profile": "high_grade_dysplasia_assessment",
+      "allowed_scales": [20.0],
+      "priority": 1.0
+    },
+    {
+      "question_id": "Q_QUALITY",
+      "target_feature": "reviewable_mucosa",
+      "question": "Is this ROI sufficiently reviewable for the requested morphology assessment?",
+      "discriminates": ["evaluable", "not_evaluable"],
+      "expected_effect": {"present": "permits_specialist_review", "absent_in_adequate_roi": "requires_new_roi"},
+      "reviewer_id": "QualityMucosaReviewer",
+      "task_profile": "overview_evaluability",
+      "allowed_scales": [2.5, 5.0],
+      "priority": 0.6
+    }
+  ],
+  "label_names": {
+    "SSL": "Sessile serrated lesion",
+    "SSLD": "Sessile serrated lesion with high-grade/definite dysplasia",
+    "HP": "Hyperplastic polyp",
+    "TSA": "Traditional serrated adenoma",
+    "TSAD": "Traditional serrated adenoma with high-grade/definite dysplasia",
+    "Unclassified serrated adenoma": "Unclassified serrated adenoma",
+    "Tubular adenoma": "Tubular adenoma",
+    "TAD": "Tubular adenoma with high-grade/definite dysplasia",
+    "Tubulovillous adenoma": "Tubulovillous adenoma",
+    "TVAD": "Tubulovillous adenoma with high-grade/definite dysplasia",
+    "Inflammatory": "Inflammatory/reactive polyp-like lesion"
+  },
+  "guidelines": {}
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": "reviewer_observation_v1",
+  "observation_id": "review_observation_dysplasia_001",
+  "request_id": "review_request_dysplasia_001",
+  "reviewer": "DysplasiaReviewer",
+  "task_profile": "high_grade_dysplasia_assessment",
+  "primary_roi_id": "roi_dysplasia_20x_001",
+  "primary_magnification": 20,
+  "target_features": [
+    "loss_of_polarity",
+    "high_grade_focus",
+    "high_grade_or_definite_dysplasia"
+  ],
+  "quality": {
+    "overall_evaluability": "adequate",
+    "status_confidence": 0.92,
+    "adequate_for_requested_features": true,
+    "limitations": ["small focus only"]
+  },
+  "findings": [
+    {
+      "feature_id": "loss_of_polarity",
+      "status": "uncertain",
+      "status_confidence": 0.56,
+      "feature_evaluability": "limited",
+      "scope": "roi_local",
+      "evidence_text": "Focal nuclear disorganization is equivocal because part of the gland is tangentially sectioned.",
+      "limitations": ["tangential section"]
+    },
+    {
+      "feature_id": "high_grade_focus",
+      "status": "absent",
+      "status_confidence": 0.79,
+      "feature_evaluability": "adequate",
+      "scope": "roi_local",
+      "evidence_text": "No convincing high-grade focus is visible in this adequately resolved crop.",
+      "limitations": []
+    },
+    {
+      "feature_id": "high_grade_or_definite_dysplasia",
+      "status": "absent",
+      "status_confidence": 0.76,
+      "feature_evaluability": "adequate",
+      "scope": "roi_local",
+      "evidence_text": "The reviewed ROI lacks a definite constellation of high-grade cytologic or architectural changes.",
+      "limitations": ["ROI-local negative evidence only"]
+    }
+  ],
+  "incidental_findings": [],
+  "overall_evidence_strength": {
+    "level": "moderate",
+    "score": 0.71
+  },
+  "limitations": ["absence applies only to the reviewed ROI"],
+  "does_not_decide_final_diagnosis": true
+}

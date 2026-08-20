@@ -1,0 +1,56 @@
+{
+  "schema_version": "reviewer_observation_v1",
+  "observation_id": "review_observation_quality_001",
+  "request_id": "review_request_quality_001",
+  "reviewer": "QualityMucosaReviewer",
+  "task_profile": "overview_evaluability",
+  "primary_roi_id": "roi_quality_2p5x_001",
+  "primary_magnification": 2.5,
+  "target_features": [
+    "reviewable_mucosa",
+    "epithelium_present",
+    "fold_or_blur_limited"
+  ],
+  "quality": {
+    "overall_evaluability": "not_evaluable",
+    "status_confidence": 0.96,
+    "adequate_for_requested_features": false,
+    "limitations": ["severe out-of-focus artifact across the mucosal region"]
+  },
+  "findings": [
+    {
+      "feature_id": "reviewable_mucosa",
+      "status": "not_evaluable",
+      "status_confidence": 0.95,
+      "feature_evaluability": "not_evaluable",
+      "scope": "roi_overview",
+      "evidence_text": "The ROI is too blurred to determine whether reviewable mucosa is present.",
+      "limitations": ["severe blur"]
+    },
+    {
+      "feature_id": "epithelium_present",
+      "status": "not_evaluable",
+      "status_confidence": 0.91,
+      "feature_evaluability": "not_evaluable",
+      "scope": "roi_overview",
+      "evidence_text": "Epithelial boundaries cannot be resolved in this crop.",
+      "limitations": ["severe blur"]
+    },
+    {
+      "feature_id": "fold_or_blur_limited",
+      "status": "present",
+      "status_confidence": 0.98,
+      "feature_evaluability": "limited",
+      "scope": "roi_overview",
+      "evidence_text": "Diffuse defocus prevents architectural assessment.",
+      "limitations": []
+    }
+  ],
+  "incidental_findings": [],
+  "overall_evidence_strength": {
+    "level": "none",
+    "score": 0.08
+  },
+  "limitations": ["request a different ROI or independently rendered crop"],
+  "does_not_decide_final_diagnosis": true
+}

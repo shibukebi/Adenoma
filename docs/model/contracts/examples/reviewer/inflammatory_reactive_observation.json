@@ -1,0 +1,66 @@
+{
+  "schema_version": "reviewer_observation_v1",
+  "observation_id": "review_observation_inflammatory_001",
+  "request_id": "review_request_inflammatory_001",
+  "reviewer": "InflammatoryReactiveReviewer",
+  "task_profile": "reactive_mimic_resolution",
+  "primary_roi_id": "roi_inflammatory_10x_001",
+  "primary_magnification": 10,
+  "target_features": [
+    "reactive_regenerative_change",
+    "adenomatous_architecture_absent",
+    "dysplasia_not_evaluable_due_to_reactive_change"
+  ],
+  "quality": {
+    "overall_evaluability": "limited",
+    "status_confidence": 0.88,
+    "adequate_for_requested_features": true,
+    "limitations": ["surface erosion limits epithelial cytology"]
+  },
+  "findings": [
+    {
+      "feature_id": "reactive_regenerative_change",
+      "status": "present",
+      "status_confidence": 0.87,
+      "feature_evaluability": "adequate",
+      "scope": "roi_local",
+      "evidence_text": "Regenerative epithelial change is present adjacent to the injured surface.",
+      "limitations": []
+    },
+    {
+      "feature_id": "adenomatous_architecture_absent",
+      "status": "absent",
+      "status_confidence": 0.7,
+      "feature_evaluability": "adequate",
+      "scope": "roi_local",
+      "evidence_text": "The proposition that adenomatous architecture is absent is not supported because crowded glands are visible locally.",
+      "limitations": ["ROI-local assessment"]
+    },
+    {
+      "feature_id": "dysplasia_not_evaluable_due_to_reactive_change",
+      "status": "present",
+      "status_confidence": 0.82,
+      "feature_evaluability": "limited",
+      "scope": "roi_local",
+      "evidence_text": "Reactive injury prevents reliable dysplasia assessment in the eroded focus.",
+      "limitations": ["reactive epithelial change"]
+    }
+  ],
+  "incidental_findings": [
+    {
+      "feature_id": "erosion",
+      "status": "present",
+      "status_confidence": 0.91,
+      "feature_evaluability": "adequate",
+      "scope": "roi_local",
+      "evidence_text": "Surface epithelial loss is visible in the reviewed ROI.",
+      "limitations": []
+    }
+  ],
+  "overall_evidence_strength": {
+    "level": "moderate",
+    "score": 0.76
+  },
+  "limitations": ["cytologic dysplasia requires a different adequately preserved ROI"],
+  "does_not_decide_final_diagnosis": true
+}

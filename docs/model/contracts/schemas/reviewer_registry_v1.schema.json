@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "reviewer_registry_v1.schema.json",
+  "title": "ReviewerRegistryV1",
+  "description": "Schema for the concrete registry of logical ROI evidence reviewers.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "registry_version",
+    "task_request_schema_version",
+    "observation_schema_version",
+    "ledger_record_schema_version",
+    "logical_reviewers_may_share_backend",
+    "retry_policy",
+    "scale_semantics",
+    "reviewers"
+  ],
+  "properties": {
+    "schema_version": { "const": "reviewer_registry_v1" },
+    "registry_version": { "type": "string", "minLength": 1 },
+    "task_request_schema_version": { "const": "reviewer_task_request_v1" },
+    "observation_schema_version": { "const": "reviewer_observation_v1" },
+    "ledger_record_schema_version": { "const": "reviewer_ledger_record_v1" },
+    "logical_reviewers_may_share_backend": { "const": true },
+    "retry_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transport_or_model_retries",
+        "schema_repair_attempts",
+        "max_conflict_resolution_rounds",
+        "retry_same_roi_when_not_evaluable"
+      ],
+      "properties": {
+        "transport_or_model_retries": { "const": 1 },
+        "schema_repair_attempts": { "const": 1 },
+        "max_conflict_resolution_rounds": { "const": 2 },
+        "retry_same_roi_when_not_evaluable": { "const": false }
+      }
+    },
+    "scale_semantics": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": { "$ref": "#/$defs/ScaleSemantic" }
+    },
+    "reviewers": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "items": { "$ref": "#/$defs/ReviewerSpec" }
+    }
+  },
+  "$defs": {
+    "ScaleSemantic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["magnification", "purpose", "prohibited_inferences"],
+      "properties": {
+        "magnification": {
+          "$ref": "reviewer_common_v1.schema.json#/$defs/Magnification"
+        },
+        "purpose": {
+          "type": "string",
+          "enum": [
+            "roi_overview_evidence",
+            "overall_architecture_component_extent_and_mixing",
+            "crypt_level_architecture",
+            "cytology_and_high_grade_or_definite_dysplasia"
+          ]
+        },
+        "prohibited_inferences": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "ContextViewPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["view_role", "allowed_magnifications", "max_count"],
+      "properties": {
+        "view_role": {
+          "type": "string",
+          "enum": [
+            "parent_architecture",
+            "same_roi_alternate_scale",
+            "adjacent_mucosa",
+            "quality_context"
+          ]
+        },
+        "allowed_magnifications": {
+          "type": "array",
+          "items": {
+            "$ref": "reviewer_common_v1.schema.json#/$defs/Magnification"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "max_count": { "type": "integer", "minimum": 1, "maximum": 3 }
+      }
+    },
+    "TaskProfileSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "task_profile",
+        "allowed_primary_magnifications",
+        "allowed_context_views",
+        "target_feature_allowlist",
+        "incidental_feature_allowlist"
+      ],
+      "properties": {
+        "task_profile": {
+          "$ref": "reviewer_common_v1.schema.json#/$defs/TaskProfile"
+        },
+        "allowed_primary_magnifications": {
+          "type": "array",
+          "items": {
+            "$ref": "reviewer_common_v1.schema.json#/$defs/Magnification"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "allowed_context_views": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ContextViewPolicy" }
+        },
+        "target_feature_allowlist": {
+          "type": "array",
+          "items": {
+            "$ref": "reviewer_common_v1.schema.json#/$defs/FeatureId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "incidental_feature_allowlist": {
+          "type": "array",
+          "items": {
+            "$ref": "reviewer_common_v1.schema.json#/$defs/FeatureId"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "ReviewerSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewer",
+        "prompt_id",
+        "prompt_version",
+        "observation_schema_version",
+        "feature_allowlist",
+        "prohibited_outputs",
+        "task_profiles"
+      ],
+      "properties": {
+        "reviewer": {
+          "$ref": "reviewer_common_v1.schema.json#/$defs/ReviewerName"
+        },
+        "prompt_id": { "type": "string", "minLength": 1 },
+        "prompt_version": { "type": "string", "minLength": 1 },
+        "observation_schema_version": { "const": "reviewer_observation_v1" },
+        "feature_allowlist": {
+          "type": "array",
+          "items": {
+            "$ref": "reviewer_common_v1.schema.json#/$defs/FeatureId"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "prohibited_outputs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "hypothesis_ranking",
+              "roi_selection",
+              "next_action",
+              "final_diagnosis",
+              "final_label_mapping",
+              "whole_slide_absence_from_single_roi",
+              "high_grade_dysplasia_assessment",
+              "D_suffix_label"
+            ]
+          },
+          "minItems": 6,
+          "uniqueItems": true
+        },
+        "task_profiles": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/TaskProfileSpec" },
+          "minItems": 1
+        }
+      }
+    }
+  }
+}

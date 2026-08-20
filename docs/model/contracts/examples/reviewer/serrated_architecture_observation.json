@@ -1,0 +1,66 @@
+{
+  "schema_version": "reviewer_observation_v1",
+  "observation_id": "review_observation_serrated_001",
+  "request_id": "review_request_serrated_001",
+  "reviewer": "SerratedArchitectureReviewer",
+  "task_profile": "ssl_hp_discrimination",
+  "primary_roi_id": "roi_serrated_10x_001",
+  "primary_magnification": 10,
+  "target_features": [
+    "basal_crypt_dilation",
+    "horizontal_or_boot_shaped_crypt",
+    "surface_limited_serration"
+  ],
+  "quality": {
+    "overall_evaluability": "adequate",
+    "status_confidence": 0.91,
+    "adequate_for_requested_features": true,
+    "limitations": []
+  },
+  "findings": [
+    {
+      "feature_id": "basal_crypt_dilation",
+      "status": "present",
+      "status_confidence": 0.86,
+      "feature_evaluability": "adequate",
+      "scope": "roi_local",
+      "evidence_text": "Several reviewable crypt bases are expanded relative to their upper portions.",
+      "limitations": []
+    },
+    {
+      "feature_id": "horizontal_or_boot_shaped_crypt",
+      "status": "present",
+      "status_confidence": 0.79,
+      "feature_evaluability": "adequate",
+      "scope": "roi_local",
+      "evidence_text": "A crypt base extends laterally along the muscularis mucosae in the reviewed ROI.",
+      "limitations": []
+    },
+    {
+      "feature_id": "surface_limited_serration",
+      "status": "absent",
+      "status_confidence": 0.74,
+      "feature_evaluability": "adequate",
+      "scope": "roi_local",
+      "evidence_text": "Serration is not confined to the surface portion in this adequate ROI.",
+      "limitations": []
+    }
+  ],
+  "incidental_findings": [
+    {
+      "feature_id": "serration_present",
+      "status": "present",
+      "status_confidence": 0.9,
+      "feature_evaluability": "adequate",
+      "scope": "roi_local",
+      "evidence_text": "Serrated luminal contours are visible in multiple crypt profiles.",
+      "limitations": []
+    }
+  ],
+  "overall_evidence_strength": {
+    "level": "strong",
+    "score": 0.84
+  },
+  "limitations": [],
+  "does_not_decide_final_diagnosis": true
+}

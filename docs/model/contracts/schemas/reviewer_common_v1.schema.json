@@ -1,0 +1,463 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "reviewer_common_v1.schema.json",
+  "title": "ReviewerCommonV1",
+  "description": "Shared strict definitions for the next-generation ROI reviewer contracts.",
+  "$defs": {
+    "ReviewerName": {
+      "type": "string",
+      "enum": [
+        "QualityMucosaReviewer",
+        "SerratedArchitectureReviewer",
+        "TSAReviewer",
+        "ConventionalArchitectureReviewer",
+        "DysplasiaReviewer",
+        "InflammatoryReactiveReviewer"
+      ]
+    },
+    "TaskProfile": {
+      "type": "string",
+      "enum": [
+        "overview_evaluability",
+        "crypt_evaluability",
+        "cytology_evaluability",
+        "serrated_overview",
+        "ssl_hp_discrimination",
+        "tsa_overview",
+        "tsa_architecture",
+        "tsa_signature_cytology",
+        "conventional_overview",
+        "tubular_villous_resolution",
+        "villous_extent_estimation",
+        "high_grade_dysplasia_assessment",
+        "inflammatory_overview",
+        "reactive_mimic_resolution"
+      ]
+    },
+    "FeatureId": {
+      "type": "string",
+      "enum": [
+        "reviewable_mucosa",
+        "epithelium_present",
+        "crypts_visible",
+        "crypt_base_visible",
+        "cytology_resolvable",
+        "artifact_limited",
+        "necrosis_limited",
+        "fold_or_blur_limited",
+        "truncation_limited",
+        "background_or_stroma_dominant",
+        "serration_present",
+        "serration_to_crypt_base",
+        "basal_crypt_dilation",
+        "horizontal_or_boot_shaped_crypt",
+        "crypt_branching",
+        "abnormal_maturation",
+        "surface_limited_serration",
+        "straight_crypt_bases",
+        "ectopic_crypt_formation",
+        "slit_like_serration",
+        "villiform_or_filiform_serrated_architecture",
+        "cytoplasmic_eosinophilia",
+        "pencillate_nuclei",
+        "tubular_architecture",
+        "villous_component_present",
+        "villous_component_extent_estimate",
+        "high_villous_component",
+        "tubular_villous_mixing",
+        "crowded_adenomatous_glands",
+        "adenomatous_gland_complexity",
+        "conventional_adenoma_like_epithelium",
+        "nuclear_stratification",
+        "hyperchromasia",
+        "loss_of_polarity",
+        "marked_cytologic_atypia",
+        "mitotic_activity",
+        "cribriform_or_complex_crowding",
+        "high_grade_focus",
+        "necrosis_or_dirty_necrosis",
+        "surface_maturation_loss",
+        "high_grade_or_definite_dysplasia",
+        "erosion",
+        "ulceration",
+        "granulation_tissue",
+        "mixed_inflammation",
+        "lymphoid_or_stromal_dominance",
+        "reactive_regenerative_change",
+        "architectural_distortion_from_injury",
+        "adenomatous_architecture_absent",
+        "serrated_architecture_absent",
+        "dysplasia_not_evaluable_due_to_reactive_change"
+      ]
+    },
+    "Magnification": {
+      "type": "number",
+      "enum": [2.5, 5, 10, 20]
+    },
+    "Level0Bbox": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "integer", "minimum": 0 },
+        { "type": "integer", "minimum": 0 },
+        { "type": "integer", "minimum": 1 },
+        { "type": "integer", "minimum": 1 }
+      ],
+      "items": false,
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "PixelDimensions": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "integer", "minimum": 1 },
+        { "type": "integer", "minimum": 1 }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "RoiImage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "roi_id",
+        "image_id",
+        "image_ref",
+        "image_sha256",
+        "level0_bbox",
+        "magnification",
+        "pixel_dimensions"
+      ],
+      "properties": {
+        "roi_id": { "type": "string", "minLength": 1 },
+        "parent_roi_id": { "type": "string", "minLength": 1 },
+        "image_id": { "type": "string", "minLength": 1 },
+        "image_ref": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Resolvable workspace path, URI, or artifact-store reference for the crop image."
+        },
+        "image_sha256": {
+          "type": "string",
+          "pattern": "^[A-Fa-f0-9]{64}$"
+        },
+        "level0_bbox": { "$ref": "#/$defs/Level0Bbox" },
+        "magnification": { "$ref": "#/$defs/Magnification" },
+        "pixel_dimensions": { "$ref": "#/$defs/PixelDimensions" },
+        "mpp": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "ContextView": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["view_role", "roi"],
+      "properties": {
+        "view_role": {
+          "type": "string",
+          "enum": [
+            "parent_architecture",
+            "same_roi_alternate_scale",
+            "adjacent_mucosa",
+            "quality_context"
+          ]
+        },
+        "roi": { "$ref": "#/$defs/RoiImage" }
+      }
+    },
+    "FeatureDisagreement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feature_id",
+        "disagreement_kind",
+        "source_observation_ids"
+      ],
+      "properties": {
+        "feature_id": { "$ref": "#/$defs/FeatureId" },
+        "disagreement_kind": {
+          "type": "string",
+          "enum": [
+            "status_disagreement",
+            "quality_disagreement",
+            "evaluability_disagreement"
+          ]
+        },
+        "observed_statuses": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["present", "absent", "uncertain", "not_evaluable"]
+          },
+          "minItems": 2
+        },
+        "observed_evaluabilities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["adequate", "limited", "not_evaluable"]
+          },
+          "minItems": 2
+        },
+        "source_observation_ids": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 2,
+          "uniqueItems": true
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "disagreement_kind": { "const": "status_disagreement" }
+            },
+            "required": ["disagreement_kind"]
+          },
+          "then": {
+            "required": ["observed_statuses"],
+            "properties": {
+              "observed_statuses": { "uniqueItems": true }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "disagreement_kind": {
+                "enum": ["quality_disagreement", "evaluability_disagreement"]
+              }
+            },
+            "required": ["disagreement_kind"]
+          },
+          "then": {
+            "required": ["observed_evaluabilities"],
+            "properties": {
+              "observed_evaluabilities": { "uniqueItems": true }
+            }
+          }
+        }
+      ]
+    },
+    "QualityBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overall_evaluability",
+        "status_confidence",
+        "adequate_for_requested_features",
+        "limitations"
+      ],
+      "properties": {
+        "overall_evaluability": {
+          "type": "string",
+          "enum": ["adequate", "limited", "not_evaluable"]
+        },
+        "status_confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "adequate_for_requested_features": { "type": "boolean" },
+        "limitations": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "VillousExtentQuantitation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metric", "category"],
+      "properties": {
+        "metric": { "const": "villous_component_extent" },
+        "category": {
+          "type": "string",
+          "enum": [
+            "less_than_25_percent",
+            "25_to_75_percent",
+            "greater_than_75_percent",
+            "indeterminate"
+          ]
+        }
+      }
+    },
+    "Finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feature_id",
+        "status",
+        "status_confidence",
+        "feature_evaluability",
+        "scope",
+        "evidence_text",
+        "limitations"
+      ],
+      "properties": {
+        "feature_id": { "$ref": "#/$defs/FeatureId" },
+        "status": {
+          "type": "string",
+          "enum": ["present", "absent", "uncertain", "not_evaluable"]
+        },
+        "status_confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "feature_evaluability": {
+          "type": "string",
+          "enum": ["adequate", "limited", "not_evaluable"]
+        },
+        "scope": {
+          "type": "string",
+          "enum": ["roi_local", "roi_overview"]
+        },
+        "evidence_text": { "type": "string", "maxLength": 2000 },
+        "limitations": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "quantitation": { "$ref": "#/$defs/VillousExtentQuantitation" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "status": { "const": "absent" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "feature_evaluability": { "const": "adequate" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "status": { "const": "not_evaluable" } },
+            "required": ["status"]
+          },
+          "then": {
+            "properties": {
+              "feature_evaluability": { "const": "not_evaluable" }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "feature_evaluability": { "const": "not_evaluable" }
+            },
+            "required": ["feature_evaluability"]
+          },
+          "then": {
+            "properties": { "status": { "const": "not_evaluable" } }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "feature_id": { "const": "villous_component_extent_estimate" }
+            },
+            "required": ["feature_id"]
+          },
+          "then": { "required": ["quantitation"] },
+          "else": { "not": { "required": ["quantitation"] } }
+        }
+      ]
+    },
+    "EvidenceStrength": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "score"],
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": ["none", "weak", "moderate", "strong"]
+        },
+        "score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "LedgerProvenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "request_id",
+        "action_id",
+        "snapshot_id",
+        "planner_action_id",
+        "reviewer",
+        "model_id",
+        "model_version",
+        "prompt_id",
+        "prompt_version",
+        "registry_version",
+        "roi_id",
+        "image_ref",
+        "image_sha256",
+        "level0_bbox",
+        "magnification",
+        "source_models",
+        "recorded_at"
+      ],
+      "properties": {
+        "case_id": { "type": "string", "minLength": 1 },
+        "request_id": { "type": "string", "minLength": 1 },
+        "action_id": { "type": "string", "minLength": 1 },
+        "snapshot_id": { "type": "string", "minLength": 1 },
+        "planner_action_id": { "type": "string", "minLength": 1 },
+        "reviewer": { "$ref": "#/$defs/ReviewerName" },
+        "model_id": { "type": "string", "minLength": 1 },
+        "model_version": { "type": "string", "minLength": 1 },
+        "prompt_id": { "type": "string", "minLength": 1 },
+        "prompt_version": { "type": "string", "minLength": 1 },
+        "registry_version": { "type": "string", "minLength": 1 },
+        "roi_id": { "type": "string", "minLength": 1 },
+        "image_ref": { "type": "string", "minLength": 1 },
+        "image_sha256": {
+          "type": "string",
+          "pattern": "^[A-Fa-f0-9]{64}$"
+        },
+        "level0_bbox": { "$ref": "#/$defs/Level0Bbox" },
+        "magnification": { "$ref": "#/$defs/Magnification" },
+        "mpp": { "type": "number", "exclusiveMinimum": 0 },
+        "source_models": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "InvocationFailure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage",
+        "error_code",
+        "message",
+        "retryable",
+        "attempt_count",
+        "repair_attempted"
+      ],
+      "properties": {
+        "stage": {
+          "type": "string",
+          "enum": ["transport", "model", "schema_validation"]
+        },
+        "error_code": { "type": "string", "minLength": 1 },
+        "message": { "type": "string", "minLength": 1 },
+        "retryable": { "type": "boolean" },
+        "attempt_count": { "type": "integer", "minimum": 1 },
+        "repair_attempted": { "type": "boolean" }
+      }
+    }
+  }
+}

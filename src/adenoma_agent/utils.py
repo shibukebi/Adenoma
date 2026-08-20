@@ -120,6 +120,24 @@ def clamp_bbox(bbox, slide_dimensions_level0):
     )
 
 
+def bbox_xywh_to_xyxy(bbox):
+    return bbox_to_dict(
+        int(bbox["xmin"]),
+        int(bbox["ymin"]),
+        int(bbox["xmin"]) + int(bbox["width"]),
+        int(bbox["ymin"]) + int(bbox["height"]),
+    )
+
+
+def bbox_xyxy_to_xywh(bbox):
+    return {
+        "xmin": int(bbox["x1"]),
+        "ymin": int(bbox["y1"]),
+        "width": bbox_width(bbox),
+        "height": bbox_height(bbox),
+    }
+
+
 def map_bbox_thumb_to_level0(bbox_thumb, thumbnail_size, slide_dimensions_level0):
     thumb_w, thumb_h = thumbnail_size
     slide_w, slide_h = slide_dimensions_level0
@@ -132,6 +150,20 @@ def map_bbox_thumb_to_level0(bbox_thumb, thumbnail_size, slide_dimensions_level0
         round(float(bbox_thumb["y2"]) * scale_y),
     )
     return clamp_bbox(mapped, slide_dimensions_level0)
+
+
+def map_bbox_level0_to_thumb(bbox_level0, thumbnail_size, slide_dimensions_level0):
+    slide_w, slide_h = slide_dimensions_level0
+    thumb_w, thumb_h = thumbnail_size
+    scale_x = float(thumb_w) / float(max(1, slide_w))
+    scale_y = float(thumb_h) / float(max(1, slide_h))
+    mapped = bbox_to_dict(
+        round(float(bbox_level0["x1"]) * scale_x),
+        round(float(bbox_level0["y1"]) * scale_y),
+        round(float(bbox_level0["x2"]) * scale_x),
+        round(float(bbox_level0["y2"]) * scale_y),
+    )
+    return clamp_bbox(mapped, thumbnail_size)
 
 
 def normalized_point(x, y, slide_dimensions_level0):

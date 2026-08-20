@@ -1,0 +1,102 @@
+{
+  "schema_version": "reviewer_ledger_record_v1",
+  "record_id": "reviewer_ledger_evidence_001",
+  "record_type": "evidence",
+  "request_id": "review_request_serrated_001",
+  "action_id": "action_serrated_001",
+  "plan_id": "plan_reviewer_fixture_001",
+  "question_id": "question_ssl_hp_001",
+  "snapshot_id": "snapshot_001",
+  "reviewer": "SerratedArchitectureReviewer",
+  "task_profile": "ssl_hp_discrimination",
+  "provenance": {
+    "case_id": "synthetic_case_001",
+    "request_id": "review_request_serrated_001",
+    "action_id": "action_serrated_001",
+    "snapshot_id": "snapshot_001",
+    "planner_action_id": "action_serrated_001",
+    "reviewer": "SerratedArchitectureReviewer",
+    "model_id": "shared_vlm_backend",
+    "model_version": "fixture-v1",
+    "prompt_id": "serrated_architecture_reviewer",
+    "prompt_version": "serrated_architecture_reviewer_v1",
+    "registry_version": "1.0.0",
+    "roi_id": "roi_serrated_10x_001",
+    "image_ref": "artifact://reviewer-fixtures/roi_serrated_10x_001.png",
+    "image_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "level0_bbox": [2200, 2400, 3224, 3424],
+    "magnification": 10,
+    "mpp": 1.0,
+    "source_models": ["shared_vlm_backend@fixture-v1"],
+    "recorded_at": "2026-08-11T09:00:00+08:00"
+  },
+  "observation": {
+    "schema_version": "reviewer_observation_v1",
+    "observation_id": "review_observation_serrated_001",
+    "request_id": "review_request_serrated_001",
+    "reviewer": "SerratedArchitectureReviewer",
+    "task_profile": "ssl_hp_discrimination",
+    "primary_roi_id": "roi_serrated_10x_001",
+    "primary_magnification": 10,
+    "target_features": [
+      "basal_crypt_dilation",
+      "horizontal_or_boot_shaped_crypt",
+      "surface_limited_serration"
+    ],
+    "quality": {
+      "overall_evaluability": "adequate",
+      "status_confidence": 0.91,
+      "adequate_for_requested_features": true,
+      "limitations": []
+    },
+    "findings": [
+      {
+        "feature_id": "basal_crypt_dilation",
+        "status": "present",
+        "status_confidence": 0.86,
+        "feature_evaluability": "adequate",
+        "scope": "roi_local",
+        "evidence_text": "Several reviewable crypt bases are expanded relative to their upper portions.",
+        "limitations": []
+      },
+      {
+        "feature_id": "horizontal_or_boot_shaped_crypt",
+        "status": "present",
+        "status_confidence": 0.79,
+        "feature_evaluability": "adequate",
+        "scope": "roi_local",
+        "evidence_text": "A crypt base extends laterally along the muscularis mucosae in the reviewed ROI.",
+        "limitations": []
+      },
+      {
+        "feature_id": "surface_limited_serration",
+        "status": "absent",
+        "status_confidence": 0.74,
+        "feature_evaluability": "adequate",
+        "scope": "roi_local",
+        "evidence_text": "Serration is not confined to the surface portion in this adequate ROI.",
+        "limitations": []
+      }
+    ],
+    "incidental_findings": [
+      {
+        "feature_id": "serration_present",
+        "status": "present",
+        "status_confidence": 0.9,
+        "feature_evaluability": "adequate",
+        "scope": "roi_local",
+        "evidence_text": "Serrated luminal contours are visible in multiple crypt profiles.",
+        "limitations": []
+      }
+    ],
+    "overall_evidence_strength": {
+      "level": "strong",
+      "score": 0.84
+    },
+    "limitations": [],
+    "does_not_decide_final_diagnosis": true
+  },
+  "reasoning_use": {
+    "status": "pending"
+  }
+}

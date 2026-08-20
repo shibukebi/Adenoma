@@ -1,0 +1,46 @@
+{
+  "schema_version": "reviewer_observation_v1",
+  "observation_id": "review_observation_tsa_001",
+  "request_id": "review_request_tsa_001",
+  "reviewer": "TSAReviewer",
+  "task_profile": "tsa_signature_cytology",
+  "primary_roi_id": "roi_tsa_20x_001",
+  "primary_magnification": 20,
+  "target_features": [
+    "cytoplasmic_eosinophilia",
+    "pencillate_nuclei"
+  ],
+  "quality": {
+    "overall_evaluability": "adequate",
+    "status_confidence": 0.9,
+    "adequate_for_requested_features": true,
+    "limitations": []
+  },
+  "findings": [
+    {
+      "feature_id": "cytoplasmic_eosinophilia",
+      "status": "present",
+      "status_confidence": 0.85,
+      "feature_evaluability": "adequate",
+      "scope": "roi_local",
+      "evidence_text": "The epithelial cells show conspicuous eosinophilic cytoplasm in the reviewed focus.",
+      "limitations": []
+    },
+    {
+      "feature_id": "pencillate_nuclei",
+      "status": "present",
+      "status_confidence": 0.77,
+      "feature_evaluability": "adequate",
+      "scope": "roi_local",
+      "evidence_text": "Elongated, pencillate nuclei are visible in the same epithelial focus.",
+      "limitations": []
+    }
+  ],
+  "incidental_findings": [],
+  "overall_evidence_strength": {
+    "level": "strong",
+    "score": 0.81
+  },
+  "limitations": [],
+  "does_not_decide_final_diagnosis": true
+}

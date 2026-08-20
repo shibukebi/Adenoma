@@ -1,0 +1,43 @@
+{
+  "schema_version": "reviewer_task_request_v1",
+  "request_id": "review_request_dysplasia_001",
+  "action_id": "action_dysplasia_001",
+  "plan_id": "plan_reviewer_fixture_001",
+  "question_id": "question_high_grade_001",
+  "snapshot_id": "snapshot_001",
+  "reviewer": "DysplasiaReviewer",
+  "model_input": {
+    "task_profile": "high_grade_dysplasia_assessment",
+    "target_features": [
+      "loss_of_polarity",
+      "high_grade_focus",
+      "high_grade_or_definite_dysplasia"
+    ],
+    "primary_roi": {
+      "roi_id": "roi_dysplasia_20x_001",
+      "parent_roi_id": "roi_dysplasia_10x_001",
+      "image_id": "image_dysplasia_20x_001",
+      "image_ref": "artifact://reviewer-fixtures/roi_dysplasia_20x_001.png",
+      "image_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+      "level0_bbox": [8200, 8400, 8712, 8912],
+      "magnification": 20,
+      "pixel_dimensions": [1024, 1024],
+      "mpp": 0.5
+    },
+    "context_views": [
+      {
+        "view_role": "parent_architecture",
+        "roi": {
+          "roi_id": "roi_dysplasia_10x_001",
+          "image_id": "image_dysplasia_10x_001",
+          "image_ref": "artifact://reviewer-fixtures/roi_dysplasia_10x_001.png",
+          "image_sha256": "5656565656565656565656565656565656565656565656565656565656565656",
+          "level0_bbox": [7944, 8144, 8968, 9168],
+          "magnification": 10,
+          "pixel_dimensions": [1024, 1024],
+          "mpp": 1.0
+        }
+      }
+    ]
+  }
+}

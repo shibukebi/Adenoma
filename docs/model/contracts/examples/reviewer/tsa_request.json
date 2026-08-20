@@ -1,0 +1,42 @@
+{
+  "schema_version": "reviewer_task_request_v1",
+  "request_id": "review_request_tsa_001",
+  "action_id": "action_tsa_001",
+  "plan_id": "plan_reviewer_fixture_001",
+  "question_id": "question_tsa_cytology_001",
+  "snapshot_id": "snapshot_001",
+  "reviewer": "TSAReviewer",
+  "model_input": {
+    "task_profile": "tsa_signature_cytology",
+    "target_features": [
+      "cytoplasmic_eosinophilia",
+      "pencillate_nuclei"
+    ],
+    "primary_roi": {
+      "roi_id": "roi_tsa_20x_001",
+      "parent_roi_id": "roi_tsa_10x_001",
+      "image_id": "image_tsa_20x_001",
+      "image_ref": "artifact://reviewer-fixtures/roi_tsa_20x_001.png",
+      "image_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "level0_bbox": [4000, 4200, 4512, 4712],
+      "magnification": 20,
+      "pixel_dimensions": [1024, 1024],
+      "mpp": 0.5
+    },
+    "context_views": [
+      {
+        "view_role": "parent_architecture",
+        "roi": {
+          "roi_id": "roi_tsa_10x_001",
+          "image_id": "image_tsa_10x_001",
+          "image_ref": "artifact://reviewer-fixtures/roi_tsa_10x_001.png",
+          "image_sha256": "3434343434343434343434343434343434343434343434343434343434343434",
+          "level0_bbox": [3744, 3944, 4768, 4968],
+          "magnification": 10,
+          "pixel_dimensions": [1024, 1024],
+          "mpp": 1.0
+        }
+      }
+    ]
+  }
+}
