@@ -1,0 +1,48 @@
+schema_version: architecture_prompts_v1
+benchmark_version: conch_text_architecture_benchmark_v1
+
+# Change this to "confirmed" only after a human pathology/domain review.
+# The freeze command requires non-empty reviewed_by and reviewed_at fields.
+review_status: pending_human_review
+reviewed_by: ""
+reviewed_at: ""
+
+class_mapping:
+  serrated: serrated
+  tubular: tubular
+  villous: villous
+
+prompt_sets:
+  single_class_name:
+    serrated: ["serrated"]
+    tubular: ["tubular"]
+    villous: ["villous"]
+
+  matched_class_name_ensemble:
+    serrated:
+      - "serrated architecture"
+      - "serrated glandular architecture"
+      - "serrated colorectal polyp architecture"
+    tubular:
+      - "tubular architecture"
+      - "tubular glandular architecture"
+      - "tubular colorectal adenoma architecture"
+    villous:
+      - "villous architecture"
+      - "villous glandular architecture"
+      - "villous colorectal adenoma architecture"
+
+  morphology_rich:
+    serrated:
+      - "colorectal mucosa with a serrated or saw-toothed glandular luminal contour"
+      - "serrated crypt architecture with luminal infolding and glandular serration"
+    tubular:
+      - "colorectal adenomatous mucosa composed predominantly of rounded or elongated tubular glands"
+      - "predominantly tubular glandular architecture without broad villous fronds"
+    villous:
+      - "colorectal adenomatous mucosa with long finger-like villous fronds and fibrovascular cores"
+      - "predominantly villous glandular architecture with broad elongated mucosal projections"
+
+immutability:
+  edit_after_benchmark_v1_freeze: forbidden
+  revision_policy: create_benchmark_v2
