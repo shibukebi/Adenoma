@@ -73,8 +73,8 @@ def _load_agent_vocabulary():
     return {
         "source": str(vocab_path),
         "summary": (
-            "Use pathology workflow terminology consistent with the adenoma agent vocabulary. "
-            "Keep region names, morphology descriptions, and review wording aligned with the five-label semantic space."
+            "Use pathology terminology consistent with the current AgentFlow vocabulary. "
+            "Keep morphology descriptions evidence-local and do not present legacy trace labels as a final diagnosis."
         ),
     }
 

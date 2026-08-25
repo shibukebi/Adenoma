@@ -9,6 +9,7 @@ from adenoma_agent.adapters.clam_coords import ClamCoordsAdapter
 from adenoma_agent.adapters.cropper import NavigationCropperAdapter
 from adenoma_agent.adapters.patch_export import PatchExportAdapter
 from adenoma_agent.adapters.route_c import RouteCSelectorAdapter
+from adenoma_agent.adapters.thumbnail_grid import ThumbnailGridPreprocessor
 from adenoma_agent.logger import JsonlLogger
 from adenoma_agent.multimodal import StageBackendChain
 from adenoma_agent.schemas import InterventionEvent
@@ -27,6 +28,11 @@ class AdenomaAgentOrchestrator(object):
         self.audit_agent = AuditAgent(bundle)
         self.coords_adapter = ClamCoordsAdapter(bundle)
         self.patch_export_adapter = PatchExportAdapter(bundle)
+        self.thumbnail_grid_preprocessor = ThumbnailGridPreprocessor(bundle)
+
+    def _pipeline_mode(self):
+        experiment_cfg = self.bundle.get("runtime", {}).get("experiment", {})
+        return str(experiment_cfg.get("pipeline_mode", "trace_navigation_observation_chief")).strip()
 
     def run_case(self, case_spec, output_root, interventions=None, trace_mode=None):
         output_root = ensure_dir(output_root)
@@ -53,6 +59,23 @@ class AdenomaAgentOrchestrator(object):
 
         started = time.time()
         timings = {}
+        if self._pipeline_mode() != "trace_navigation_observation_chief":
+            raise RuntimeError("Unsupported experiment.pipeline_mode: {0}".format(self._pipeline_mode()))
+        thumbnail_grid_preprocess = self.thumbnail_grid_preprocessor.prepare(case_spec, case_dir)
+        case_spec = thumbnail_grid_preprocess.get("case_spec", case_spec)
+        logger.log(
+            state="PREPROCESS_THUMBNAIL_GRID",
+            agent="ThumbnailGridPreprocessor",
+            input_ref=case_spec.slide_path,
+            output_ref=thumbnail_grid_preprocess.get("grid_metadata_path", thumbnail_grid_preprocess.get("output_dir", "")),
+            latency_ms=thumbnail_grid_preprocess.get("latency_ms", 0),
+            status=thumbnail_grid_preprocess.get("status", "skipped"),
+            payload={
+                key: value
+                for key, value in thumbnail_grid_preprocess.items()
+                if key not in {"case_spec"}
+            },
+        )
         trace_result = self._run_stage(
             "TRACE",
             logger,
@@ -145,6 +168,11 @@ class AdenomaAgentOrchestrator(object):
             "patch_export_returncode": patch_export["result"]["returncode"],
             "input_mode": case_spec.input_mode,
             "grid_first_bypassed_coords_export": bool(grid_first_bypassed_coords_export),
+            "thumbnail_grid_preprocess": {
+                key: value
+                for key, value in thumbnail_grid_preprocess.items()
+                if key not in {"case_spec"}
+            },
         }
         case_result = self.audit_agent.run(
             case_spec,

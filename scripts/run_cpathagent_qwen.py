@@ -77,13 +77,14 @@ def _build_navigate_prompt(request, bundle):
         "You are the Navigation Planning Agent in a pathology workflow.",
         "Given the overview image and grouped trace regions, produce a pathology viewing path as JSON only.",
         "Prioritize higher-s groups first. Preserve branch semantics.",
-        "Use only 5x and 20x navigation magnifications.",
-        "For ssl_suspicious_mucosa: plan 5x overview and, if d=true, add 20x abnormal_crypt_assessment.",
-        "For conventional_adenoma_like: plan 5x conventional_adenoma_assessment.",
-        "For inflammatory_polyp_like or normal_mucosa: 5x overview only when s>0.",
+        "Navigation must use only 2.5x, 5x, and 10x magnifications.",
+        "Treat 2.5x as pathway overview and 5x as subtype/architecture assessment. Do not schedule 10x in this initial navigation pass; 10x is requested later by Chief reasoning as a targeted tool call.",
+        "For serrated: plan 2.5x serrated_overview_assessment, 5x ssl_assessment, and 5x tsa_assessment.",
+        "For conventional: plan 2.5x conventional_overview_assessment and 5x conventional_architecture_assessment.",
+        "For normal: plan 2.5x normal_overview_assessment and add 5x inflammatory_reactive_assessment only with inflammatory/reactive clues.",
         "",
         "Return JSON:",
-        '{ "steps": [ { "source_group_id": "grid_group_00", "patch_id": [0, 0], "x": 100, "y": 200, "m": 5.0, "region_size_level0": 256, "need_to_see": "what to inspect", "review_goal": "serrated_lesion_assessment", "stage_gate": "mucosa_or_serrated" }, { "source_group_id": "grid_group_00", "patch_id": [0, 0], "x": 100, "y": 200, "m": 20.0, "region_size_level0": 64, "need_to_see": "higher magnification", "review_goal": "abnormal_crypt_assessment", "stage_gate": "abnormal_crypt" } ] }',
+        '{ "steps": [ { "source_group_id": "grid_group_00", "patch_id": [0, 0], "x": 100, "y": 200, "m": 2.5, "region_size_level0": 4096, "need_to_see": "2.5x overview for serrated mucosal context", "review_goal": "serrated_overview_assessment", "stage_gate": "serrated_overview" }, { "source_group_id": "grid_group_00", "patch_id": [0, 0], "x": 100, "y": 200, "m": 5.0, "region_size_level0": 2048, "need_to_see": "5x SSL architectural distortion assessment", "review_goal": "ssl_assessment", "stage_gate": "ssl_architecture" }, { "source_group_id": "grid_group_00", "patch_id": [0, 0], "x": 100, "y": 200, "m": 5.0, "region_size_level0": 2048, "need_to_see": "5x TSA architecture and low-power cytology assessment", "review_goal": "tsa_assessment", "stage_gate": "tsa_architecture" } ] }',
         "",
         "Clusters:",
     ]
@@ -131,23 +132,31 @@ def _parse_navigate_output(text, request, bundle):
             x = int(round((int(bbox["x1"]) + int(bbox["x2"])) / 2.0))
             y = int(round((int(bbox["y1"]) + int(bbox["y2"])) / 2.0))
         magnification = float(step.get("m", 5.0))
+        if abs(magnification - 20.0) < 1e-6:
+            magnification = 10.0
+        region_size = int(mag_to_region.get(str(magnification), 2048))
+        if int(step.get("region_size_level0", region_size)) == 512 and abs(magnification - 10.0) < 1e-6:
+            region_size = int(mag_to_region.get("10.0", 1024))
+        cell_id = "cell_{0}_{1}".format(*list(patch_id)[:2]) if len(list(patch_id)) == 2 else source_group_id
         normalized_steps.append(
             {
                 "step_id": "step_{0:02d}".format(index),
                 "x": int(x),
                 "y": int(y),
                 "m": magnification,
-                "region_size_level0": int(mag_to_region.get(str(magnification), 256)),
+                "region_size_level0": region_size,
                 "need_to_see": step.get("need_to_see", step.get("o", "Inspect the planned pathology region.")),
-                "review_goal": step.get("review_goal", "serrated_lesion_assessment"),
-                "stage_gate": step.get("stage_gate", "mucosa_or_serrated"),
+                "review_goal": step.get("review_goal", "serrated_overview_assessment"),
+                "stage_gate": step.get("stage_gate", "serrated_overview"),
                 "metadata": {
                     "cluster_id": source_group_id,
                     "source_group_id": source_group_id,
                     "cluster_label": cluster.get("l"),
                     "cluster_priority": cluster.get("s"),
+                    "cell_priority": cluster.get("s"),
+                    "cell_id": cell_id,
                     "patch_id": list(patch_id),
-                    "region_size_level0": int(mag_to_region.get(str(magnification), 256)),
+                    "region_size_level0": region_size,
                     "workflow_branch": cluster.get("metadata", {}).get("workflow_branch"),
                     "action": "inspect",
                 },
@@ -161,11 +170,11 @@ def _parse_navigate_output(text, request, bundle):
                     "x": last["x"],
                     "y": last["y"],
                     "m": 5.0,
-                    "region_size_level0": 256,
+                    "region_size_level0": 2048,
                     "need_to_see": "Stop navigation and consolidate the gathered evidence.",
                     "review_goal": "integrated_impression",
                     "stage_gate": "end",
-                    "metadata": {"action": "stop", "region_size_level0": 256},
+                    "metadata": {"action": "stop", "region_size_level0": 2048},
                 }
             )
     return {"steps": normalized_steps}

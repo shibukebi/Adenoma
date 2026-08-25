@@ -26,6 +26,7 @@ def build_parser():
     parser.add_argument("--grid-metadata-path", required=True)
     parser.add_argument("--teacher-assignment-json", default=None)
     parser.add_argument("--gemini-candidates-json", default=None, help="JSON with a candidates array from run_gemini_trace_teacher.")
+    parser.add_argument("--conch-assignment-json", default=None)
     parser.add_argument("--pathreasoner-assignment-json", default=None)
     parser.add_argument("--output-dir", required=True)
     return parser
@@ -33,6 +34,7 @@ def build_parser():
 
 def main():
     args = build_parser().parse_args()
+    conch = read_assignment_payload(args.conch_assignment_json) if args.conch_assignment_json else None
     pathreasoner = read_assignment_payload(args.pathreasoner_assignment_json) if args.pathreasoner_assignment_json else None
     if args.gemini_candidates_json:
         candidate_bundle = read_json(args.gemini_candidates_json)
@@ -46,6 +48,7 @@ def main():
             candidate_results,
             Path(args.output_dir),
             selection=selection,
+            conch_payload=conch,
             pathreasoner_payload=pathreasoner,
         )
     else:
@@ -58,6 +61,7 @@ def main():
             args.grid_metadata_path,
             teacher,
             Path(args.output_dir),
+            conch_payload=conch,
             pathreasoner_payload=pathreasoner,
         )
     print(json.dumps({"review_dir": str(output_dir), "review_target": str(Path(output_dir) / "review_target.json")}))

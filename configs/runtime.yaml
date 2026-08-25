@@ -20,12 +20,14 @@ paths:
   clam_python: /data15/data15_5/yuexin2/anaconda3/envs/clam_latest/bin/python
   patho_r1_python: /data15/data15_5/yuexin2/anaconda3/envs/patho-r1/bin/python
   cpathagent_qwen_python: /data15/data15_5/yuexin2/anaconda3/envs/patho-r1/bin/python
+  chief_python: /path/to/chief-deepseek-serving/bin/python
   route_c_select_script: /data15/data15_5/yuexin2/adenoma/scripts/patho_r1_route_c_select.py
   route_c_boxes_to_h5_script: /data15/data15_5/yuexin2/adenoma/scripts/route_c_boxes_to_h5.py
   export_patch_samples_script: /data15/data15_5/yuexin2/adenoma/scripts/export_patch_samples.py
   patho_r1_patch_qa_script: /data15/data15_5/yuexin2/adenoma/scripts/run_patho_r1_qa.py
   cpathagent_qwen_runner_script: /data15/data15_5/yuexin2/adenoma_agent/scripts/run_cpathagent_qwen.py
   crop_helper_script: /data15/data15_5/yuexin2/adenoma_agent/src/adenoma_agent/helpers/export_navigation_crops.py
+  generate_wsi_thumbnails_script: /data1/yuexin/Adenoma/scripts/generate_wsi_thumbnails.py
 models:
   patho_r1_model_id: WenchuanZhang/Patho-R1-3B
   patho_r1_cache_dir: /data15/data15_5/yuexin2/adenoma/models/hf_cache
@@ -36,8 +38,10 @@ models:
   cpathagent_qwen_adapter_path: /data1/yuexin/Adenoma/models/PathReasoner-R1
   cpathagent_qwen_cache_dir: /data15/data15_5/yuexin2/adenoma/models/cpathagent_qwen_cache
 execution:
-  patho_r1_cuda_visible_devices: "5"
-  cpathagent_qwen_cuda_visible_devices: "5"
+  # Server-mode deployment should be pinned externally with CUDA_VISIBLE_DEVICES.
+  # Keep local_patho_r1 on the same explicit device family instead of relying on auto selection.
+  patho_r1_cuda_visible_devices: "0"
+  cpathagent_qwen_cuda_visible_devices: "0"
 backends:
   external_command:
     enabled: false
@@ -49,31 +53,106 @@ backends:
   local_patho_r1:
     enabled: true
     max_new_tokens: 256
+  local_conch:
+    enabled: true
+    server_url: http://127.0.0.1:8200/predict
+    timeout_seconds: 60
+  local_digepath:
+    enabled: false
+    server_url: http://127.0.0.1:8300/predict
+    timeout_seconds: 60
+chief_llm:
+  provider: http_server
+  server_url: http://127.0.0.1:8100/predict
+  timeout_seconds: 180
+  model_name: DeepSeek-R1-Distill-Qwen-32B
+  fallback_model_name: DeepSeek-R1-Distill-Qwen-14B
+  model_path: /data1/yuexin/Adenoma/models/DeepSeek-R1-Distill-Qwen-32B
+  fallback_model_path: /data1/yuexin/Adenoma/models/DeepSeek-R1-Distill-Qwen-14B
+output_repair:
+  enabled: true
+  backend: deepseek_chief_http
+  server_url: ""
+  trigger_policy: on_parse_or_contract_failure
+  stages:
+    - trace
+    - navigate
+    - observe_step
+    - observe_report
+  allow_light_clinical_fill: true
+  max_repair_attempts: 1
+junior:
+  enabled: true
+  backbone_name: heuristic_low_mag_proxy
+  processing_level_downsample: 32.0
+  patch_size: 256
+  stride: 128
+  threshold: 0.5
+  min_tissue_fraction: 0.05
+  mucosa_probability_threshold: 0.55
+  necrosis_veto_threshold: 0.35
+  tissue_brightness_threshold: 242.0
+  tissue_saturation_threshold: 10.0
 trace:
+  mode: conch_only
   preferred_mode: auto
+  enable_conch_fusion: false
+  enable_digepath_fusion: false
+  classifier_crop_source: wsi_first
+  classifier_wsi_crop_output_size: 512
+  conch_fail_policy: soft_fail_skip_patch
+  digepath_fail_policy: soft_fail_skip_patch
+  digepath_high_confidence_threshold: 0.70
+  normal_conch_confidence_threshold: 0.90
+  normal_digepath_confidence_threshold: 0.90
+  normal_gate_fallback_label: uncertain_reviewable_mucosa
   thumbnail_max_size: 2048
   score_threshold: 1
   cluster_grid_size: 16
   min_cell_tissue_fraction: 0.08
   min_cluster_area_fraction: 0.01
-  patho_r1_question: "You are the Trace Agent in a hierarchical pathology workflow. Analyze a gridded thumbnail image of a colorectal whole-slide image, partition all selected grid cells into coherent pathology groups, and prioritize both the SSL pathway and conventional adenoma pathway while keeping background and inflammatory groups distinct. Focus on workflow routing rather than final diagnosis. Do not assess tumor grade, final subtype certainty, or broad differential diagnosis. Return JSON only using the groups schema requested by the user prompt."
+  patho_r1_question: "Compatibility fallback only. The default trace.mode is conch_only, so Trace should use CONCH-derived neutral tissue evidence and should not decide serrated versus conventional branch at Trace."
   backend_chain:
     - external_command
     - local_cpathagent_qwen
     - local_patho_r1
     - heuristic
   labels:
-    - background_artifact_stroma
-    - normal_mucosa
-    - conventional_adenoma_like
-    - inflammatory_polyp_like
-    - ssl_suspicious_mucosa
+    - epithelial_neoplasia_suspicious
+    - mucus_rich_or_pale_context
+    - uncertain_reviewable_mucosa
+    - inflammatory_or_stromal_context
+    - reviewable_normal_mucosa
+    - background_or_artifact
+thumbnail_grid_preprocess:
+  enabled: false
+  generate_if_missing: false
+  script_path: /data1/yuexin/Adenoma/scripts/generate_wsi_thumbnails.py
+  python: python3
+  mode: tissue_grid32x_svs
+  output_root: /data15/data15_5/yuexin2/adenoma_agent/artifacts/cache/thumbnail_grid
+  metadata_root: ""
+  thumbnail_root: ""
+  case_subdir: true
+  recursive: false
+  overwrite: false
+  grid_cell_size_thumb: 64
+  grid_physical_level0_extent: 2048
+  tissue_coverage_threshold: 0.05
+  grid_align_to_patch_h5: false
+  segmentations_dir: ""
+  patch_h5_dir: ""
+  mask_jpg_dir: ""
+  accepted_thumbnail_modes:
+    - tissue_grid32x_svs
+    - tissue_grid32x_isyntax
 navigate:
   coordinate_mode: level0
   overlap_threshold: 0.30
   magnification_schedule:
+    - 2.5
     - 5.0
-    - 20.0
+    - 10.0
   backend_chain:
     - external_command
     - heuristic
@@ -88,6 +167,10 @@ observe:
     - serrated_surface_pattern
     - mucus_rich_surface
     - serrated_lesion_context
+  serrated_overview_criteria:
+    - reviewable_serrated_mucosa
+    - serrated_lesion_context
+    - serrated_surface_pattern
   abnormal_crypt_criteria:
     - basal_dilatation
     - crypt_branching
@@ -97,14 +180,68 @@ observe:
     - mucus_cap
     - abnormal_maturation
   conventional_adenoma_criteria:
+    - tubular_architecture
+    - villous_component
+    - high_villous_component
     - tubular_or_tubulovillous_architecture
     - crowded_adenomatous_glands
     - pencillate_hyperchromatic_nuclei
+  ssl_criteria:
+    - basal_crypt_deformation
+    - crypt_branching
+  ssl_architectural_distortion_criteria:
+    - basal_crypt_deformation
+    - crypt_branching
+  hp_criteria:
+    - surface_limited_serration
+    - straight_crypt_bases
+    - lacks_basal_architectural_distortion
+  tsa_criteria:
+    - ectopic_crypt_foci
+    - slit_like_serration
+    - global_color_shift
+    - epithelial_banding_pattern
+  tsa_architectural_distortion_criteria:
+    - ectopic_crypt_foci
+    - slit_like_serration
+  tsa_cytological_atypia_low_power_criteria:
+    - global_color_shift
+    - epithelial_banding_pattern
+  tsa_cytological_atypia_criteria:
+    - cytoplasmic_eosinophilia
+    - pencillate_nuclei
+  conventional_overview_criteria:
+    - non_serrated_lesion_context
+    - conventional_adenoma_candidate
+  conventional_architecture_criteria:
+    - tubular_architecture
+    - villous_component
+    - high_villous_component
+    - tubular_or_tubulovillous_architecture
+    - crowded_adenomatous_glands
+    - pencillate_hyperchromatic_nuclei
+  normal_overview_criteria:
+    - reviewable_low_priority_mucosa
+    - no_serrated_or_conventional_lesion_context
+  inflammatory_reactive_criteria:
+    - erosion
+    - granulation_tissue
+    - mixed_inflammation
+    - reactive_regenerative_change
+    - lacks_adenomatous_or_serrated_architecture
+  inflammatory_criteria:
+    - erosion
+    - granulation_tissue
+    - mixed_inflammation
+    - reactive_regenerative_change
+    - lacks_adenomatous_or_serrated_architecture
   dysplasia_criteria:
     - nuclear_enlargement_stratification
     - hyperchromasia
     - mitotic_activity_atypia
     - architectural_crowding
+    - high_grade_focus
+    - marked_cytologic_atypia
 cache:
   thumbnail_cache_root: /data15/data15_5/yuexin2/adenoma_agent/artifacts/cache/thumbnail
   trace_cache_root: /data15/data15_5/yuexin2/adenoma_agent/artifacts/cache/trace

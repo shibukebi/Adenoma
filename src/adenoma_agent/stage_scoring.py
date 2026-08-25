@@ -7,11 +7,16 @@ from adenoma_agent.contract_review import (
 from adenoma_agent.trace_supervision import (
     FIXED_DIAGNOSTIC_PRIORITY,
     TRACE_LABEL_RUBRIC,
+    _normalize_global_screening_label,
     read_assignment_payload,
     selected_patch_ids_from_grid,
     validate_patch_assignments,
 )
 from adenoma_agent.utils import read_json
+
+
+def _is_number(value):
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
 MINOR_PENALTY = 5
@@ -26,21 +31,45 @@ OBSERVATION_WEIGHT = 0.35
 OBSERVE_STEP_WEIGHT = 0.60
 OBSERVE_REPORT_WEIGHT = 0.40
 
-ALLOWED_WORKFLOW_BRANCHES = {"serrated", "conventional", "non_serrated", "background"}
+ALLOWED_WORKFLOW_BRANCHES = {"serrated", "conventional", "conventional_adenoma", "normal", "non_serrated", "background", "unresolved"}
 ALLOWED_REVIEW_GOALS = {
+    "serrated_overview_assessment",
+    "ssl_assessment",
+    "hp_assessment",
+    "tsa_assessment",
+    "ssl_dysplasia_assessment",
+    "tsa_cytological_atypia_assessment",
+    "tsa_dysplasia_assessment",
+    "conventional_overview_assessment",
+    "conventional_architecture_assessment",
+    "reactive_regenerative_assessment",
+    "normal_overview_assessment",
+    "inflammatory_reactive_assessment",
     "serrated_lesion_assessment",
     "abnormal_crypt_assessment",
     "conventional_adenoma_assessment",
     "non_serrated_overview_assessment",
+    "morphology_resolution_assessment",
     "serrated_dysplasia_assessment",
     "conventional_dysplasia_assessment",
     "integrated_impression",
 }
 ALLOWED_STAGE_GATES = {
     "mucosa_or_serrated",
+    "serrated_overview",
+    "ssl_architecture",
+    "hp_architecture",
+    "tsa_architecture",
+    "tsa_cytology",
     "abnormal_crypt",
+    "conventional_overview",
+    "conventional_architecture",
     "conventional_adenoma",
+    "normal_overview",
+    "inflammatory_reactive",
+    "reactive_regenerative",
     "non_serrated_context",
+    "morphology_resolution",
     "dysplasia",
     "end",
 }
@@ -143,13 +172,11 @@ TRACE_RULE_TO_LAYER = {
     "trace.region_semantic.enum": "semantic_vocabulary",
     "trace.observation_points.non_standard": "semantic_vocabulary",
     "trace.observation_points.fuzzy": "semantic_vocabulary",
-    "trace.matrix.ssl_priority": "clinical_logic",
-    "trace.matrix.ssl_high_mag": "clinical_logic",
-    "trace.matrix.ssl_observation_focus": "clinical_logic",
+    "trace.matrix.serrated_priority": "clinical_logic",
+    "trace.matrix.serrated_high_mag": "clinical_logic",
+    "trace.matrix.serrated_observation_focus": "clinical_logic",
     "trace.matrix.conventional_priority": "clinical_logic",
     "trace.matrix.conventional_high_mag": "clinical_logic",
-    "trace.matrix.inflammatory_priority": "clinical_logic",
-    "trace.matrix.inflammatory_high_mag": "clinical_logic",
     "trace.matrix.normal_priority": "clinical_logic",
     "trace.matrix.normal_positive_terms": "clinical_logic",
     "trace.matrix.background_priority": "clinical_logic",
@@ -163,9 +190,9 @@ NAV_RULE_TO_LAYER = {
     "navigate.stage_gate.enum": "semantic_vocabulary",
     "navigate.region_size_mapping": "clinical_logic",
     "navigate.matrix.trace_reference_mismatch": "contextual_spatial",
-    "navigate.matrix.ssl_branch": "clinical_logic",
-    "navigate.matrix.ssl_review_goal": "clinical_logic",
-    "navigate.matrix.ssl_abnormal_without_high_mag": "clinical_logic",
+    "navigate.matrix.serrated_branch": "clinical_logic",
+    "navigate.matrix.serrated_review_goal": "clinical_logic",
+    "navigate.matrix.serrated_abnormal_without_high_mag": "clinical_logic",
     "navigate.matrix.conventional_branch": "clinical_logic",
     "navigate.matrix.conventional_review_goal": "clinical_logic",
     "navigate.matrix.non_serrated_branch": "clinical_logic",
@@ -185,6 +212,54 @@ OBS_RULE_TO_LAYER = {
     "observe_report.matrix.final_case_alignment": "clinical_logic",
 }
 OBSERVE_STEP_DECISION_MAP = {
+    "serrated_overview_assessment": {
+        "supports_serrated_overview",
+        "serrated_overview_not_supported_or_indeterminate",
+    },
+    "ssl_assessment": {
+        "ssl_architecture_supported",
+        "ssl_architecture_not_supported_or_indeterminate",
+    },
+    "hp_assessment": {
+        "hp_architecture_supported",
+        "hp_architecture_not_supported_or_indeterminate",
+    },
+    "tsa_assessment": {
+        "tsa_architecture_supported",
+        "tsa_architecture_not_supported_or_indeterminate",
+    },
+    "ssl_dysplasia_assessment": {
+        "ssl_dysplasia_supported",
+        "ssl_dysplasia_not_supported_or_indeterminate",
+    },
+    "tsa_cytological_atypia_assessment": {
+        "tsa_cytological_atypia_supported",
+        "tsa_cytological_atypia_not_supported_or_indeterminate",
+    },
+    "tsa_dysplasia_assessment": {
+        "tsa_dysplasia_supported",
+        "tsa_dysplasia_not_supported_or_indeterminate",
+    },
+    "conventional_overview_assessment": {
+        "supports_conventional_overview",
+        "conventional_overview_not_supported_or_indeterminate",
+    },
+    "conventional_architecture_assessment": {
+        "supports_conventional_architecture",
+        "conventional_architecture_not_supported_or_indeterminate",
+    },
+    "normal_overview_assessment": {
+        "supports_normal_overview",
+        "normal_overview_not_supported_or_indeterminate",
+    },
+    "inflammatory_reactive_assessment": {
+        "inflammatory_reactive_supported",
+        "inflammatory_reactive_not_supported_or_indeterminate",
+    },
+    "reactive_regenerative_assessment": {
+        "reactive_regenerative_supported",
+        "reactive_regenerative_not_supported_or_indeterminate",
+    },
     "serrated_lesion_assessment": {
         "supports_serrated_lesion",
         "leans_non_serrated_or_indeterminate",
@@ -211,6 +286,18 @@ OBSERVE_STEP_DECISION_MAP = {
     },
 }
 POSITIVE_STAGE_DECISIONS = {
+    "supports_serrated_overview",
+    "ssl_architecture_supported",
+    "hp_architecture_supported",
+    "tsa_architecture_supported",
+    "ssl_dysplasia_supported",
+    "tsa_cytological_atypia_supported",
+    "tsa_dysplasia_supported",
+    "supports_conventional_overview",
+    "supports_conventional_architecture",
+    "reactive_regenerative_supported",
+    "supports_normal_overview",
+    "inflammatory_reactive_supported",
     "supports_serrated_lesion",
     "supports_abnormal_crypt",
     "supports_conventional_adenoma",
@@ -416,7 +503,7 @@ def _trace_cluster_lookup(payload):
 
 
 def _check_trace_patch_logic(summary, patch, index, text_penalties):
-    label = str(patch.get("region_semantic", "")).strip()
+    label = _normalize_global_screening_label(patch.get("region_semantic"))
     location = "patches[{0}]".format(index)
     if label not in TRACE_LABEL_RUBRIC:
         _add_penalty(
@@ -424,7 +511,7 @@ def _check_trace_patch_logic(summary, patch, index, text_penalties):
             "trace.region_semantic.enum",
             "critical_enum",
             CRITICAL_ENUM_PENALTY,
-            "region_semantic must match the 5-label whitelist",
+            "region_semantic must match the 4-label trace whitelist",
             layer="semantic_vocabulary",
             location=location,
             details={"region_semantic": label},
@@ -462,11 +549,11 @@ def _check_trace_patch_logic(summary, patch, index, text_penalties):
                 details={"value": item},
             )
 
-    if label == "ssl_suspicious_mucosa":
+    if label == "serrated":
         if priority != 4:
-            _add_penalty(summary, "trace.matrix.ssl_priority", "major", MAJOR_PENALTY, "SSL patches must use diagnostic_priority=4", location=location, details={"diagnostic_priority": priority})
+            _add_penalty(summary, "trace.matrix.serrated_priority", "major", MAJOR_PENALTY, "Serrated-route patches must use diagnostic_priority=4", location=location, details={"diagnostic_priority": priority})
         if require_high_mag is not True:
-            _add_penalty(summary, "trace.matrix.ssl_high_mag", "major", MAJOR_PENALTY, "SSL patches must require high magnification", location=location)
+            _add_penalty(summary, "trace.matrix.serrated_high_mag", "major", MAJOR_PENALTY, "Serrated-route patches must require high magnification", location=location)
         ssl_focus = {
             "basal crypt dilatation",
             "crypt branching",
@@ -476,23 +563,18 @@ def _check_trace_patch_logic(summary, patch, index, text_penalties):
             "abnormal maturation",
         }
         if not set(canonical_points) & ssl_focus:
-            _add_penalty(summary, "trace.matrix.ssl_observation_focus", "major", MAJOR_PENALTY, "SSL patches must include at least one serrated observation focus", location=location, details={"observation_points": observation_points})
-    elif label == "conventional_adenoma_like":
+            _add_penalty(summary, "trace.matrix.serrated_observation_focus", "major", MAJOR_PENALTY, "Serrated-route patches must include at least one serrated observation focus", location=location, details={"observation_points": observation_points})
+    elif label == "conventional":
         if priority != 3:
-            _add_penalty(summary, "trace.matrix.conventional_priority", "major", MAJOR_PENALTY, "Conventional adenoma-like patches must use diagnostic_priority=3", location=location, details={"diagnostic_priority": priority})
+            _add_penalty(summary, "trace.matrix.conventional_priority", "major", MAJOR_PENALTY, "Conventional-route patches must use diagnostic_priority=3", location=location, details={"diagnostic_priority": priority})
         if require_high_mag is not True:
-            _add_penalty(summary, "trace.matrix.conventional_high_mag", "major", MAJOR_PENALTY, "Conventional adenoma-like patches must require high magnification", location=location)
-    elif label == "inflammatory_polyp_like":
-        if priority != 2:
-            _add_penalty(summary, "trace.matrix.inflammatory_priority", "major", MAJOR_PENALTY, "Inflammatory polyp-like patches must use diagnostic_priority=2", location=location, details={"diagnostic_priority": priority})
-        if require_high_mag is not False:
-            _add_penalty(summary, "trace.matrix.inflammatory_high_mag", "major", MAJOR_PENALTY, "Inflammatory polyp-like patches must default to require_high_magnification=false", location=location)
-    elif label == "normal_mucosa":
+            _add_penalty(summary, "trace.matrix.conventional_high_mag", "major", MAJOR_PENALTY, "Conventional-route patches must require high magnification", location=location)
+    elif label == "normal":
         if priority is None or int(priority) > 1:
-            _add_penalty(summary, "trace.matrix.normal_priority", "major", MAJOR_PENALTY, "Normal mucosa must use diagnostic_priority<=1", location=location, details={"diagnostic_priority": priority})
+            _add_penalty(summary, "trace.matrix.normal_priority", "major", MAJOR_PENALTY, "Normal-route mucosa must use diagnostic_priority<=1", location=location, details={"diagnostic_priority": priority})
         if _contains_any(text_blob, TRACE_POSITIVE_TERMS):
-            _add_penalty(summary, "trace.matrix.normal_positive_terms", "major", MAJOR_PENALTY, "Normal mucosa must not contain serrated/dysplasia positive terms", location=location)
-    elif label == "background_artifact_stroma":
+            _add_penalty(summary, "trace.matrix.normal_positive_terms", "major", MAJOR_PENALTY, "Normal-route mucosa must not contain serrated/dysplasia positive terms", location=location)
+    elif label == "background":
         if priority != 0:
             _add_penalty(summary, "trace.matrix.background_priority", "major", MAJOR_PENALTY, "Background patches must use diagnostic_priority=0", location=location, details={"diagnostic_priority": priority})
         if require_high_mag is not False:
@@ -605,13 +687,25 @@ def _trace_payload_has_clusters(trace_payload):
 
 
 def _expected_branch_for_label(label):
-    if label == "ssl_suspicious_mucosa":
+    label = _normalize_global_screening_label(label)
+    if label in {
+        "epithelial_neoplasia_suspicious",
+        "mucus_rich_or_pale_context",
+        "uncertain_reviewable_mucosa",
+        "inflammatory_or_stromal_context",
+    }:
+        return "unresolved"
+    if label == "reviewable_normal_mucosa":
+        return "normal"
+    if label == "background_or_artifact":
+        return "background"
+    if label == "serrated":
         return "serrated"
-    if label == "conventional_adenoma_like":
+    if label == "conventional":
         return "conventional"
-    if label in {"inflammatory_polyp_like", "normal_mucosa"}:
-        return "non_serrated"
-    if label == "background_artifact_stroma":
+    if label == "normal":
+        return "normal"
+    if label == "background":
         return "background"
     return None
 
@@ -686,7 +780,7 @@ def _check_navigation_step(summary, step, index, trace_context, seen_branch_gate
     if cluster is None:
         cluster = {"l": metadata.get("cluster_label"), "d": False}
 
-    cluster_label = str(metadata.get("cluster_label") or "").strip()
+    cluster_label = _normalize_global_screening_label(metadata.get("cluster_label")) or str(metadata.get("cluster_label") or "").strip()
     workflow_branch = str(metadata.get("workflow_branch") or "").strip()
     review_goal = str(step.get("review_goal") or "").strip()
     stage_gate = str(step.get("stage_gate") or "").strip()
@@ -704,35 +798,60 @@ def _check_navigation_step(summary, step, index, trace_context, seen_branch_gate
     if expected_region_size is not None and step.get("region_size_level0") != expected_region_size:
         _add_penalty(summary, "navigate.region_size_mapping", "major", MAJOR_PENALTY, "region_size_level0 must match the fixed magnification mapping", location=location, details={"m": magnification, "region_size_level0": step.get("region_size_level0"), "expected": expected_region_size})
 
-    trace_label = str(cluster.get("l") or cluster_label or "").strip()
+    trace_label = _normalize_global_screening_label(cluster.get("l") or cluster_label) or str(cluster.get("l") or cluster_label or "").strip()
     expected_branch = _expected_branch_for_label(trace_label)
-    if expected_branch and workflow_branch != expected_branch:
+    neutral_trace_label = trace_label in {
+        "epithelial_neoplasia_suspicious",
+        "mucus_rich_or_pale_context",
+        "uncertain_reviewable_mucosa",
+        "inflammatory_or_stromal_context",
+    }
+    if expected_branch and workflow_branch != expected_branch and not neutral_trace_label:
         _add_penalty(summary, "navigate.matrix.trace_reference_mismatch", "major", MAJOR_PENALTY, "Navigation branch must stay aligned with the trace cluster label", layer="contextual_spatial", location=location, details={"trace_label": trace_label, "workflow_branch": workflow_branch})
 
     cluster_id = str(metadata.get("cluster_id") or metadata.get("source_group_id") or "").strip()
-    if stage_gate == "abnormal_crypt" and cluster_id:
+    if stage_gate in {"abnormal_crypt", "ssl_architecture", "hp_architecture", "tsa_architecture"} and cluster_id:
         seen_branch_gate[("serrated", cluster_id)] = True
-    if stage_gate == "conventional_adenoma" and cluster_id:
+    if stage_gate in {"conventional_adenoma", "conventional_architecture", "reactive_regenerative"} and cluster_id:
         seen_branch_gate[("conventional", cluster_id)] = True
 
-    if trace_label == "ssl_suspicious_mucosa":
+    if neutral_trace_label:
+        if review_goal != "morphology_resolution_assessment":
+            _add_penalty(summary, "navigate.matrix.neutral_review_goal", "minor", MINOR_PENALTY, "Neutral CONCH trace labels should start with morphology resolution before branch-specific review", location=location, details={"review_goal": review_goal})
+    elif trace_label == "serrated":
         if workflow_branch != "serrated":
-            _add_penalty(summary, "navigate.matrix.ssl_branch", "major", MAJOR_PENALTY, "SSL steps must stay in the serrated branch", location=location)
-        if review_goal not in {"serrated_lesion_assessment", "abnormal_crypt_assessment", "serrated_dysplasia_assessment"}:
-            _add_penalty(summary, "navigate.matrix.ssl_review_goal", "major", MAJOR_PENALTY, "SSL steps must use serrated review goals only", location=location, details={"review_goal": review_goal})
-        if review_goal == "abnormal_crypt_assessment" and not bool(cluster.get("d")):
-            _add_penalty(summary, "navigate.matrix.ssl_abnormal_without_high_mag", "major", MAJOR_PENALTY, "abnormal_crypt_assessment requires trace d=true for SSL", location=location)
-    elif trace_label == "conventional_adenoma_like":
-        if workflow_branch != "conventional":
-            _add_penalty(summary, "navigate.matrix.conventional_branch", "major", MAJOR_PENALTY, "Conventional adenoma-like steps must stay in the conventional branch", location=location)
-        if review_goal not in {"conventional_adenoma_assessment", "conventional_dysplasia_assessment"}:
-            _add_penalty(summary, "navigate.matrix.conventional_review_goal", "major", MAJOR_PENALTY, "Conventional adenoma-like steps must use conventional review goals", location=location, details={"review_goal": review_goal})
-    elif trace_label in {"inflammatory_polyp_like", "normal_mucosa"}:
-        if workflow_branch != "non_serrated":
-            _add_penalty(summary, "navigate.matrix.non_serrated_branch", "major", MAJOR_PENALTY, "Inflammatory/normal steps must stay in the non_serrated branch", location=location)
-        if review_goal != "non_serrated_overview_assessment":
-            _add_penalty(summary, "navigate.matrix.non_serrated_review_goal", "major", MAJOR_PENALTY, "Inflammatory/normal steps must use non_serrated_overview_assessment only", location=location, details={"review_goal": review_goal})
-    elif trace_label == "background_artifact_stroma":
+            _add_penalty(summary, "navigate.matrix.serrated_branch", "major", MAJOR_PENALTY, "Serrated trace steps must stay in the serrated branch unless Chief correction is recorded", location=location)
+        if review_goal not in {
+            "serrated_overview_assessment",
+            "ssl_assessment",
+            "hp_assessment",
+            "tsa_assessment",
+            "ssl_dysplasia_assessment",
+            "tsa_cytological_atypia_assessment",
+            "tsa_dysplasia_assessment",
+            "serrated_lesion_assessment",
+            "abnormal_crypt_assessment",
+            "serrated_dysplasia_assessment",
+        }:
+            _add_penalty(summary, "navigate.matrix.serrated_review_goal", "major", MAJOR_PENALTY, "Serrated trace steps must use serrated review goals only", location=location, details={"review_goal": review_goal})
+    elif trace_label == "conventional":
+        if workflow_branch not in {"conventional", "conventional_adenoma"}:
+            _add_penalty(summary, "navigate.matrix.conventional_branch", "major", MAJOR_PENALTY, "Conventional trace steps must stay in the conventional branch unless Chief correction is recorded", location=location)
+        if review_goal not in {
+            "conventional_overview_assessment",
+            "conventional_architecture_assessment",
+            "reactive_regenerative_assessment",
+            "conventional_adenoma_assessment",
+            "conventional_dysplasia_assessment",
+            "non_serrated_overview_assessment",
+        }:
+            _add_penalty(summary, "navigate.matrix.conventional_review_goal", "major", MAJOR_PENALTY, "Conventional trace steps must use conventional/non-serrated review goals", location=location, details={"review_goal": review_goal})
+    elif trace_label == "normal":
+        if workflow_branch not in {"normal", "non_serrated"}:
+            _add_penalty(summary, "navigate.matrix.normal_branch", "major", MAJOR_PENALTY, "Normal trace steps must stay in normal/non_serrated review", location=location)
+        if review_goal not in {"normal_overview_assessment", "inflammatory_reactive_assessment", "non_serrated_overview_assessment"}:
+            _add_penalty(summary, "navigate.matrix.normal_review_goal", "major", MAJOR_PENALTY, "Normal trace steps must use non_serrated_overview_assessment only", location=location, details={"review_goal": review_goal})
+    elif trace_label == "background":
         if review_goal != "non_serrated_overview_assessment":
             _add_penalty(summary, "navigate.matrix.background_goal", "major", MAJOR_PENALTY, "Background steps must not enter lesion or dysplasia goals", location=location, details={"review_goal": review_goal})
 
@@ -740,6 +859,8 @@ def _check_navigation_step(summary, step, index, trace_context, seen_branch_gate
         branch = workflow_branch
         gate_source = str(metadata.get("gate_source") or "").strip()
         if gate_source == "abnormal_crypt":
+            branch = "serrated"
+        elif gate_source in {"ssl_architecture", "tsa_architecture"}:
             branch = "serrated"
         elif gate_source == "conventional_adenoma":
             branch = "conventional"
@@ -757,11 +878,25 @@ def score_navigate(payload, trace_payload):
 
     trace_context = _build_trace_context(trace_payload if isinstance(trace_payload, dict) else {"clusters": []})
     seen_branch_gate = {}
+    goals_by_cluster = {}
     for index, step in enumerate(payload.get("steps", []) if isinstance(payload, dict) else []):
         if isinstance(step, dict):
+            metadata = step.get("metadata", {}) if isinstance(step.get("metadata", {}), dict) else {}
+            if metadata.get("action") != "stop":
+                cluster_id = str(metadata.get("cluster_id") or metadata.get("source_group_id") or "").strip()
+                if cluster_id:
+                    goals_by_cluster.setdefault(cluster_id, set()).add(str(step.get("review_goal") or "").strip())
             _check_navigation_step(summary, step, index, trace_context, seen_branch_gate)
             if summary["hard_fail"]:
                 break
+    if not summary["hard_fail"]:
+        for cluster_id, cluster in trace_context["cluster_lookup"].items():
+            goals = goals_by_cluster.get(cluster_id, set())
+            trace_label = _normalize_global_screening_label(cluster.get("l")) if isinstance(cluster, dict) else None
+            if trace_label == "serrated" and "serrated_overview_assessment" in goals and "hp_assessment" not in goals:
+                _add_penalty(summary, "navigate.matrix.missing_hp_assessment", "moderate", MODERATE_PENALTY, "New serrated navigation must include 5x hp_assessment alongside SSL/TSA assessment", location="cluster:{0}".format(cluster_id), details={"review_goals": sorted(goals)})
+            if trace_label == "conventional" and "conventional_overview_assessment" in goals and "reactive_regenerative_assessment" not in goals:
+                _add_penalty(summary, "navigate.matrix.missing_reactive_regenerative_assessment", "moderate", MODERATE_PENALTY, "New conventional navigation must include 5x reactive_regenerative_assessment alongside architecture assessment", location="cluster:{0}".format(cluster_id), details={"review_goals": sorted(goals)})
     return _finalize_stage(summary)
 
 
@@ -770,11 +905,31 @@ def _allowed_stage_decisions_for_goal(review_goal):
 
 
 def _finding_key_for_goal(review_goal):
-    if review_goal in {"serrated_lesion_assessment", "conventional_adenoma_assessment", "non_serrated_overview_assessment"}:
+    if review_goal in {
+        "serrated_overview_assessment",
+        "serrated_lesion_assessment",
+        "ssl_assessment",
+        "hp_assessment",
+        "tsa_assessment",
+        "conventional_overview_assessment",
+        "conventional_architecture_assessment",
+        "reactive_regenerative_assessment",
+        "normal_overview_assessment",
+        "inflammatory_reactive_assessment",
+        "conventional_adenoma_assessment",
+        "non_serrated_overview_assessment",
+    }:
         return "level_1_findings"
     if review_goal == "abnormal_crypt_assessment":
         return "level_2_findings"
-    if review_goal in {"serrated_dysplasia_assessment", "conventional_dysplasia_assessment"}:
+    if review_goal == "tsa_cytological_atypia_assessment":
+        return "level_1_findings"
+    if review_goal in {
+        "ssl_dysplasia_assessment",
+        "tsa_dysplasia_assessment",
+        "serrated_dysplasia_assessment",
+        "conventional_dysplasia_assessment",
+    }:
         return "level_3_findings"
     return None
 
@@ -830,6 +985,38 @@ def _check_observe_step(summary, record, index):
             _add_penalty(summary, "observe_step.matrix.background_positive_leak", "major", MAJOR_PENALTY, "background/non-serrated records must not emit positive dysplasia, adenoma, or abnormal-crypt evidence", location=location)
 
 
+def _check_global_review(summary, review, index, observations):
+    location = "global_reviews[{0}]".format(index)
+    decision = str(review.get("decision") or "").strip()
+    if decision not in {"continue", "early_stop"}:
+        _add_penalty(summary, "observe_step.stage_decision.enum", "major", MAJOR_PENALTY, "global_review decision must be continue or early_stop", layer="semantic_vocabulary", location=location, details={"decision": decision})
+    if not _is_number(review.get("chief_confidence")):
+        _add_penalty(summary, "observe_step.matrix.stage_decision_mapping", "major", MAJOR_PENALTY, "chief_confidence must be numeric", location=location)
+    if not isinstance(review.get("resolved_branch_state"), dict):
+        _add_penalty(summary, "observe_step.matrix.stage_decision_mapping", "major", MAJOR_PENALTY, "resolved_branch_state must be an object", location=location)
+    if index < len(observations):
+        expected_step_id = observations[index].get("step_id")
+        if review.get("source_step_id") != expected_step_id:
+            _add_penalty(summary, "observe_step.matrix.stage_decision_mapping", "major", MAJOR_PENALTY, "global_review.source_step_id must align with the corresponding observation step_id", location=location, details={"source_step_id": review.get("source_step_id"), "expected": expected_step_id})
+    if decision == "continue":
+        nxt = review.get("next_visual_target")
+        if not isinstance(review.get("continue_reason"), str) or not review.get("continue_reason", "").strip():
+            _add_penalty(summary, "observe_step.matrix.support_requires_findings", "major", MAJOR_PENALTY, "continue decision must include continue_reason", location=location)
+        if not isinstance(nxt, dict):
+            _add_penalty(summary, "observe_step.matrix.support_requires_findings", "major", MAJOR_PENALTY, "continue decision must include next_visual_target", location=location)
+        else:
+            if nxt.get("preferred_magnification") not in ALLOWED_NAVIGATION_MAGNIFICATIONS:
+                _add_penalty(summary, "navigate.region_size_mapping", "major", MAJOR_PENALTY, "Chief preferred_magnification must be one of the navigation magnification whitelist", location=location, details={"preferred_magnification": nxt.get("preferred_magnification")})
+            if not isinstance(nxt.get("target_morphology_prompt"), list) or not nxt.get("target_morphology_prompt"):
+                _add_penalty(summary, "observe_step.matrix.support_requires_findings", "major", MAJOR_PENALTY, "Chief continue decision must include target_morphology_prompt", location=location)
+            if nxt.get("target_branch") != observations[index].get("metadata", {}).get("workflow_branch") and not str(review.get("branch_correction_reason") or "").strip():
+                _add_penalty(summary, "observe_step.matrix.stage_decision_mapping", "major", MAJOR_PENALTY, "branch_correction_reason is required when Chief redirects to a different branch", location=location)
+    if decision == "early_stop":
+        evidence = review.get("sufficient_evidence")
+        if not isinstance(evidence, list) or not evidence:
+            _add_penalty(summary, "observe_step.matrix.support_requires_findings", "major", MAJOR_PENALTY, "early_stop decision must include sufficient_evidence", location=location)
+
+
 def score_observe_step(payload):
     summary = _new_stage_summary("observe_step")
     contract = review_observation_step_payload(payload)
@@ -837,9 +1024,14 @@ def score_observe_step(payload):
     _record_contract_errors(summary, contract)
     if summary["hard_fail"]:
         return _finalize_stage(summary)
-    for index, record in enumerate(payload.get("observations", []) if isinstance(payload, dict) else []):
+    observations = payload.get("observations", []) if isinstance(payload, dict) else []
+    global_reviews = payload.get("global_reviews", []) if isinstance(payload, dict) else []
+    for index, record in enumerate(observations):
         if isinstance(record, dict):
             _check_observe_step(summary, record, index)
+    for index, review in enumerate(global_reviews):
+        if isinstance(review, dict):
+            _check_global_review(summary, review, index, observations)
     return _finalize_stage(summary)
 
 
@@ -870,6 +1062,34 @@ def _build_support_index(observe_step_payload):
     return index
 
 
+def _build_chief_support_index(observe_step_payload):
+    index = {
+        "serrated_lesion_assessment": False,
+        "abnormal_crypt_assessment": False,
+        "conventional_adenoma_assessment": False,
+        "serrated_dysplasia_assessment": False,
+        "conventional_dysplasia_assessment": False,
+    }
+    if not isinstance(observe_step_payload, dict):
+        return index
+    reviews = observe_step_payload.get("global_reviews", [])
+    if not isinstance(reviews, list) or not reviews:
+        return index
+    final_review = reviews[-1] if isinstance(reviews[-1], dict) else {}
+    evidence_text = _lower_text(_stringify(final_review.get("sufficient_evidence", [])))
+    if _contains_any(evidence_text, {"serrated lesion", "serrated context", "ssl"}):
+        index["serrated_lesion_assessment"] = True
+    if _contains_any(evidence_text, {"abnormal crypt", "crypt branching", "basal crypt", "boot-shaped"}):
+        index["abnormal_crypt_assessment"] = True
+    if _contains_any(evidence_text, {"conventional adenoma", "adenomatous glands", "tubular architecture", "tubulovillous"}):
+        index["conventional_adenoma_assessment"] = True
+    if _contains_any(evidence_text, {"serrated dysplasia"}):
+        index["serrated_dysplasia_assessment"] = True
+    if _contains_any(evidence_text, {"conventional dysplasia"}):
+        index["conventional_dysplasia_assessment"] = True
+    return index
+
+
 def _check_hierarchy_key(summary, hierarchy, key):
     branch = _normalize_hierarchy_branch(hierarchy.get(key))
     if not branch:
@@ -887,6 +1107,10 @@ def score_observe_report(payload, observe_step_payload):
 
     hierarchy = payload.get("hierarchical_prediction", {}) if isinstance(payload, dict) else {}
     step_support = _build_support_index(observe_step_payload)
+    chief_support = _build_chief_support_index(observe_step_payload)
+    global_reviews = observe_step_payload.get("global_reviews", []) if isinstance(observe_step_payload, dict) else []
+    if not global_reviews or str(global_reviews[-1].get("decision") or "").strip() != "early_stop":
+        _add_penalty(summary, "observe_report.matrix.missing_hierarchy_key", "major", MAJOR_PENALTY, "observe_report must only be generated after a final global_review decision=early_stop", location="global_reviews")
     serrated_branch = _check_hierarchy_key(summary, hierarchy, "serrated_lesion_assessment")
     abnormal_branch = _check_hierarchy_key(summary, hierarchy, "abnormal_crypt_assessment")
     conventional_branch = _check_hierarchy_key(summary, hierarchy, "conventional_adenoma_assessment")
@@ -914,9 +1138,10 @@ def score_observe_report(payload, observe_step_payload):
     for branch_key, branch_payload in branch_expectations:
         positive = bool(branch_payload.get("positive"))
         has_step_support = bool(step_support.get(branch_key))
+        has_chief_support = bool(chief_support.get(branch_key))
         has_checklist_support = bool(checklist_support.get(branch_key, {}).get("support"))
-        if positive and not (has_step_support and has_checklist_support):
-            _add_penalty(summary, "observe_report.matrix.positive_without_support", "major", MAJOR_PENALTY, "Positive report branches must be supported by both step-level stage_decision and checklist evidence", location="hierarchical_prediction.{0}".format(branch_key), details={"branch": branch_key, "step_support": has_step_support, "checklist_support": has_checklist_support})
+        if positive and not (has_step_support and has_chief_support and has_checklist_support):
+            _add_penalty(summary, "observe_report.matrix.positive_without_support", "major", MAJOR_PENALTY, "Positive report branches must be supported by step-level stage_decision, Chief sufficient_evidence, and checklist evidence", location="hierarchical_prediction.{0}".format(branch_key), details={"branch": branch_key, "step_support": has_step_support, "chief_support": has_chief_support, "checklist_support": has_checklist_support})
         if not positive and has_step_support and has_checklist_support:
             _add_penalty(summary, "observe_report.matrix.supported_but_denied", "major", MAJOR_PENALTY, "Report branches must not deny a branch already supported upstream", location="hierarchical_prediction.{0}".format(branch_key), details={"branch": branch_key})
 
@@ -927,14 +1152,18 @@ def score_observe_report(payload, observe_step_payload):
         _add_penalty(summary, "observe_report.matrix.positive_without_support", "major", MAJOR_PENALTY, "Overall dysplasia assessment must be supported by a positive serrated or conventional dysplasia branch", location="hierarchical_prediction.dysplasia_assessment")
 
     final_label = str(final_case_branch.get("label") or "").strip()
-    if final_label == "SSL+dysplasia":
+    classification_status = str(hierarchy.get("classification_status") or final_case_branch.get("classification_status") or "classified").strip()
+    if classification_status == "classified" and not final_label:
+        _add_penalty(summary, "observe_report.matrix.final_case_alignment", "major", MAJOR_PENALTY, "Classified reports must include a final 11-class label", location="hierarchical_prediction.final_case_assessment", details={"classification_status": classification_status})
+    if final_label in ("SSL+dysplasia", "SSLD", "TSAD"):
         if not (bool(serrated_branch.get("positive")) and bool(serrated_dysplasia_branch.get("positive"))):
-            _add_penalty(summary, "observe_report.matrix.final_case_alignment", "major", MAJOR_PENALTY, "Final case label SSL+dysplasia requires both serrated and serrated dysplasia branches to be positive", location="hierarchical_prediction.final_case_assessment", details={"label": final_label})
-    elif final_label == "Others+dysplasia":
+            _add_penalty(summary, "observe_report.matrix.final_case_alignment", "major", MAJOR_PENALTY, "Serrated final labels with D suffix require both serrated and high-grade/definite dysplasia branches to be positive", location="hierarchical_prediction.final_case_assessment", details={"label": final_label})
+    elif final_label in ("Others+dysplasia", "TAD", "TVAD"):
         if not (bool(conventional_branch.get("positive")) and bool(conventional_dysplasia_branch.get("positive"))):
-            _add_penalty(summary, "observe_report.matrix.final_case_alignment", "major", MAJOR_PENALTY, "Final case label Others+dysplasia requires both conventional and conventional dysplasia branches to be positive", location="hierarchical_prediction.final_case_assessment", details={"label": final_label})
+            _add_penalty(summary, "observe_report.matrix.final_case_alignment", "major", MAJOR_PENALTY, "Conventional final labels with D suffix require both conventional adenoma and high-grade/definite dysplasia branches to be positive", location="hierarchical_prediction.final_case_assessment", details={"label": final_label})
 
     summary["metrics"]["step_support"] = step_support
+    summary["metrics"]["chief_support"] = chief_support
     summary["metrics"]["checklist_support"] = checklist_support
     return _finalize_stage(summary)
 

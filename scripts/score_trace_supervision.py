@@ -19,6 +19,7 @@ def build_parser():
     parser.add_argument("--assignment-json", required=True)
     parser.add_argument("--grid-metadata-json", required=True)
     parser.add_argument("--clusters-json", default=None)
+    parser.add_argument("--conch-assignment-json", default=None)
     parser.add_argument("--pathreasoner-assignment-json", default=None)
     parser.add_argument("--output-json", required=True)
     return parser
@@ -32,8 +33,9 @@ def main():
     if args.clusters_json:
         clusters_payload = read_json(args.clusters_json)
         clusters = clusters_payload.get("clusters", clusters_payload.get("selected_clusters", []))
+    conch = read_assignment_payload(args.conch_assignment_json) if args.conch_assignment_json else None
     pathreasoner = read_assignment_payload(args.pathreasoner_assignment_json) if args.pathreasoner_assignment_json else None
-    score = score_trace_case(target, grid_meta, clusters=clusters, pathreasoner_payload=pathreasoner)
+    score = score_trace_case(target, grid_meta, clusters=clusters, pathreasoner_payload=pathreasoner, conch_payload=conch)
     write_json(args.output_json, score)
     print(json.dumps({"output_json": args.output_json, "total_score": score["total_score"], "review_recommended": score["review_recommended"]}))
 

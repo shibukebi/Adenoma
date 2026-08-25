@@ -32,8 +32,8 @@ class StageScoringTest(unittest.TestCase):
             "patches": [
                 {
                     "patch_id": [0, 0],
-                    "region_semantic": "ssl_suspicious_mucosa",
-                    "name": "SSL-like mucosa",
+                    "region_semantic": "serrated",
+                    "name": "Serrated mucosa",
                     "description": "Pale serrated mucosa with mucus cap.",
                     "require_high_magnification": True,
                     "severity_reasoning": "Serrated concern with basal crypt abnormality.",
@@ -42,7 +42,7 @@ class StageScoringTest(unittest.TestCase):
                 },
                 {
                     "patch_id": [0, 1],
-                    "region_semantic": "background_artifact_stroma",
+                    "region_semantic": "background",
                     "name": "Background",
                     "description": "Low-value background only.",
                     "require_high_magnification": False,
@@ -58,7 +58,7 @@ class StageScoringTest(unittest.TestCase):
             "clusters": [
                 {
                     "cluster_id": "cluster_ssl",
-                    "l": "ssl_suspicious_mucosa",
+                    "l": "serrated",
                     "s": 4,
                     "d": True,
                     "desc": "SSL cluster",
@@ -68,7 +68,7 @@ class StageScoringTest(unittest.TestCase):
                 },
                 {
                     "cluster_id": "cluster_bg",
-                    "l": "background_artifact_stroma",
+                    "l": "background",
                     "s": 0,
                     "d": False,
                     "desc": "Background cluster",
@@ -87,17 +87,19 @@ class StageScoringTest(unittest.TestCase):
                     "x": 100,
                     "y": 120,
                     "m": 5.0,
-                    "region_size_level0": 256,
+                    "region_size_level0": 2048,
                     "need_to_see": "Inspect serrated mucosal context.",
                     "review_goal": "serrated_lesion_assessment",
                     "stage_gate": "mucosa_or_serrated",
                     "metadata": {
                         "cluster_id": "cluster_ssl",
                         "source_group_id": "cluster_ssl",
-                        "cluster_label": "ssl_suspicious_mucosa",
+                        "cluster_label": "serrated",
                         "cluster_priority": 4,
+                        "cell_id": "cell_0_0",
+                        "cell_priority": 4,
                         "patch_id": [0, 0],
-                        "region_size_level0": 256,
+                        "region_size_level0": 2048,
                         "workflow_branch": "serrated",
                         "action": "inspect",
                     },
@@ -106,18 +108,20 @@ class StageScoringTest(unittest.TestCase):
                     "step_id": "step_01",
                     "x": 100,
                     "y": 120,
-                    "m": 20.0,
-                    "region_size_level0": 64,
+                    "m": 10.0,
+                    "region_size_level0": 1024,
                     "need_to_see": "Inspect abnormal crypt architecture.",
                     "review_goal": "abnormal_crypt_assessment",
                     "stage_gate": "abnormal_crypt",
                     "metadata": {
                         "cluster_id": "cluster_ssl",
                         "source_group_id": "cluster_ssl",
-                        "cluster_label": "ssl_suspicious_mucosa",
+                        "cluster_label": "serrated",
                         "cluster_priority": 4,
+                        "cell_id": "cell_0_0",
+                        "cell_priority": 4,
                         "patch_id": [0, 0],
-                        "region_size_level0": 64,
+                        "region_size_level0": 1024,
                         "workflow_branch": "serrated",
                         "action": "inspect",
                     },
@@ -127,17 +131,19 @@ class StageScoringTest(unittest.TestCase):
                     "x": 100,
                     "y": 120,
                     "m": 5.0,
-                    "region_size_level0": 256,
+                    "region_size_level0": 2048,
                     "need_to_see": "Stop navigation and consolidate.",
                     "review_goal": "integrated_impression",
                     "stage_gate": "end",
                     "metadata": {
                         "cluster_id": "cluster_ssl",
                         "source_group_id": "cluster_ssl",
-                        "cluster_label": "ssl_suspicious_mucosa",
+                        "cluster_label": "serrated",
                         "cluster_priority": 4,
+                        "cell_id": "cell_0_0",
+                        "cell_priority": 4,
                         "patch_id": [0, 0],
-                        "region_size_level0": 256,
+                        "region_size_level0": 2048,
                         "workflow_branch": "serrated",
                         "action": "stop",
                     },
@@ -162,6 +168,7 @@ class StageScoringTest(unittest.TestCase):
                     "metadata": {
                         "review_goal": "serrated_lesion_assessment",
                         "stage_gate": "mucosa_or_serrated",
+                        "workflow_branch": "serrated",
                     },
                 },
                 {
@@ -178,9 +185,56 @@ class StageScoringTest(unittest.TestCase):
                     "metadata": {
                         "review_goal": "abnormal_crypt_assessment",
                         "stage_gate": "abnormal_crypt",
+                        "workflow_branch": "serrated",
                     },
                 },
-            ]
+            ],
+            "global_reviews": [
+                {
+                    "review_id": "global_review_0000",
+                    "source_step_id": "step_00",
+                    "decision": "continue",
+                    "continue_reason": "Need high-magnification crypt confirmation before stopping.",
+                    "chief_confidence": 0.73,
+                    "resolved_branch_state": {
+                        "serrated": "supported",
+                        "abnormal_crypt": "unresolved",
+                        "conventional": "opposed",
+                        "dysplasia": "unresolved",
+                    },
+                    "sufficient_evidence": [],
+                    "unresolved_questions": ["Need abnormal crypt confirmation."],
+                    "next_visual_target": {
+                        "target_cluster_id": "cluster_ssl",
+                        "target_branch": "serrated",
+                        "target_region_semantic": "serrated",
+                        "target_morphology_prompt": ["look for basal crypt dilatation"],
+                        "preferred_magnification": 10.0,
+                        "priority_reason": "Resolve highest-value remaining branch uncertainty.",
+                    },
+                    "branch_correction_reason": "",
+                },
+                {
+                    "review_id": "global_review_0001",
+                    "source_step_id": "step_01",
+                    "decision": "early_stop",
+                    "continue_reason": "",
+                    "chief_confidence": 0.81,
+                    "resolved_branch_state": {
+                        "serrated": "supported",
+                        "abnormal_crypt": "supported",
+                        "conventional": "opposed",
+                        "dysplasia": "unresolved",
+                    },
+                    "sufficient_evidence": [
+                        "Serrated lesion context is supported.",
+                        "Abnormal crypt architecture is supported.",
+                    ],
+                    "unresolved_questions": [],
+                    "next_visual_target": None,
+                    "branch_correction_reason": "",
+                },
+            ],
         }
 
     def _observe_report_payload(self):
@@ -209,13 +263,13 @@ class StageScoringTest(unittest.TestCase):
         self.assertGreaterEqual(result["score"], 80)
         self.assertEqual(result["status"], "pass")
 
-    def test_trace_scoring_penalizes_invalid_ssl_priority_and_fuzzy_observation(self):
+    def test_trace_scoring_penalizes_invalid_serrated_priority_and_fuzzy_observation(self):
         payload = self._trace_payload()
         payload["patches"][0]["diagnostic_priority"] = 1
         payload["patches"][0]["observation_points"] = ["suspicious area"]
         result = score_trace(payload, self._grid_meta())
         rule_ids = [item["rule_id"] for item in result["violations"]]
-        self.assertIn("trace.matrix.ssl_priority", rule_ids)
+        self.assertIn("trace.matrix.serrated_priority", rule_ids)
         self.assertIn("trace.observation_points.fuzzy", rule_ids)
         self.assertLess(result["score"], 80)
 
@@ -230,7 +284,7 @@ class StageScoringTest(unittest.TestCase):
         payload["steps"][0]["metadata"]["workflow_branch"] = "background"
         result = score_navigate(payload, self._trace_clusters_payload())
         rule_ids = [item["rule_id"] for item in result["violations"]]
-        self.assertIn("navigate.matrix.ssl_branch", rule_ids)
+        self.assertIn("navigate.matrix.serrated_branch", rule_ids)
         self.assertLess(result["score"], 80)
 
     def test_navigate_scoring_hard_fails_on_unknown_cluster(self):
@@ -259,6 +313,31 @@ class StageScoringTest(unittest.TestCase):
         self.assertIn("observe_report.matrix.positive_without_support", rule_ids)
         self.assertLessEqual(result["score"], 80)
 
+    def test_observe_step_scoring_penalizes_branch_redirect_without_reason(self):
+        payload = self._observe_step_payload()
+        payload["global_reviews"][0]["next_visual_target"]["target_branch"] = "conventional"
+        payload["global_reviews"][0]["branch_correction_reason"] = ""
+        result = score_observe_step(payload)
+        rule_ids = [item["rule_id"] for item in result["violations"]]
+        self.assertIn("observe_step.matrix.stage_decision_mapping", rule_ids)
+
+    def test_observe_report_scoring_penalizes_missing_final_early_stop(self):
+        step_payload = self._observe_step_payload()
+        step_payload["global_reviews"][-1]["decision"] = "continue"
+        step_payload["global_reviews"][-1]["continue_reason"] = "Need more evidence."
+        step_payload["global_reviews"][-1]["next_visual_target"] = {
+            "target_cluster_id": "cluster_ssl",
+            "target_branch": "serrated",
+            "target_region_semantic": "serrated",
+            "target_morphology_prompt": ["look for additional corroboration"],
+            "preferred_magnification": 10.0,
+            "priority_reason": "More evidence requested.",
+        }
+        report_payload = self._observe_report_payload()
+        result = score_observe_report(report_payload, step_payload)
+        rule_ids = [item["rule_id"] for item in result["violations"]]
+        self.assertIn("observe_report.matrix.missing_hierarchy_key", rule_ids)
+
     def test_observation_stage_uses_60_40_weighting(self):
         step_payload = self._observe_step_payload()
         report_payload = self._observe_report_payload()
@@ -282,8 +361,9 @@ class StageScoringTest(unittest.TestCase):
         self.assertGreaterEqual(result["overall_score"], 85)
 
     def test_trace_rubric_priority_conflict_is_fixed_to_document_value(self):
-        self.assertEqual(TRACE_LABEL_RUBRIC["inflammatory_polyp_like"]["default_priority"], 2)
-        self.assertEqual(FIXED_DIAGNOSTIC_PRIORITY["inflammatory_polyp_like"], 2)
+        self.assertNotIn("inflammatory_polyp_like", TRACE_LABEL_RUBRIC)
+        self.assertEqual(TRACE_LABEL_RUBRIC["normal"]["default_priority"], 1)
+        self.assertEqual(FIXED_DIAGNOSTIC_PRIORITY["normal"], 1)
 
     def test_score_agent_stage_cli_case_mode(self):
         with tempfile.TemporaryDirectory() as tmpdir:

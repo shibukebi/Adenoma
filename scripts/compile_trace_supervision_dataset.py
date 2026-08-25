@@ -42,6 +42,7 @@ def _case_paths(review_path):
             "review_target.json",
             "auto_score.json",
             "teacher_patch_assignments.json",
+            "conch_patch_assignments.json",
             "pathreasoner_patch_assignments.json",
             "gemini_candidates.json",
             "candidate_diff.json",

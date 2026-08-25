@@ -14,6 +14,33 @@ SRC_ROOT = REPO_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
+def _current_env_cuda_libs():
+    prefix = Path(sys.prefix)
+    version_dir = "python{0}.{1}".format(sys.version_info.major, sys.version_info.minor)
+    candidates = [
+        prefix / "lib" / version_dir / "site-packages" / "nvidia" / "nvjitlink" / "lib",
+        prefix / "lib" / version_dir / "site-packages" / "nvidia" / "cusparse" / "lib",
+        prefix / "lib",
+    ]
+    return [str(path) for path in candidates if path.exists()]
+
+
+def ensure_torch_runtime():
+    if os.environ.get("_QWEN_SERVER_LD_READY") == "1":
+        return
+    current = [part for part in os.environ.get("LD_LIBRARY_PATH", "").split(":") if part]
+    new_parts = list(_current_env_cuda_libs())
+    for part in current:
+        if part not in new_parts:
+            new_parts.append(part)
+    env = os.environ.copy()
+    env["LD_LIBRARY_PATH"] = ":".join(new_parts)
+    env["_QWEN_SERVER_LD_READY"] = "1"
+    os.execvpe(sys.executable, [sys.executable, *sys.argv], env)
+
+
+ensure_torch_runtime()
+
 import torch  # noqa: E402
 import uvicorn  # noqa: E402
 from fastapi import FastAPI, HTTPException  # noqa: E402

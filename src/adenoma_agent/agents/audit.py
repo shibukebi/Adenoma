@@ -65,7 +65,7 @@ class AuditAgent(object):
         for step in review_steps:
             if not (0 <= step.x <= slide_w and 0 <= step.y <= slide_h):
                 errors.append("Navigation step out of bounds: {0}".format(step.step_id))
-            if float(step.m) not in (5.0, 20.0):
+            if float(step.m) not in (2.5, 5.0, 10.0):
                 errors.append("Navigation magnification is invalid: {0}".format(step.step_id))
             if not step.need_to_see:
                 errors.append("Navigation step missing need_to_see text: {0}".format(step.step_id))
@@ -85,7 +85,7 @@ class AuditAgent(object):
                     branch = "serrated"
                 elif gate_source == "conventional_adenoma":
                     branch = "conventional"
-                if branch not in ("serrated", "conventional"):
+                if branch not in ("serrated", "conventional", "conventional_adenoma"):
                     errors.append("Dysplasia review missing branch source for {0}".format(step.step_id))
                 elif not seen_dysplasia_gate.get((branch, cluster_id)):
                     errors.append(
@@ -94,16 +94,22 @@ class AuditAgent(object):
 
         for cluster in trace_result["clusters"]:
             branch = cluster.metadata.get("workflow_branch")
-            if cluster.l == "conventional_adenoma_like" and branch != "conventional":
+            label = str(cluster.l or "").strip()
+            conventional_labels = {"conventional", "conventional_adenoma_like", "tubular_adenoma_like", "tubulovillous_adenoma_like"}
+            serrated_labels = {"serrated", "ssl_like_mucosa", "ssl_suspicious_mucosa", "ssl_high_priority_mucosa", "hp_like_mucosa", "tsa_like_mucosa", "unclassified_serrated_like_mucosa"}
+            if label in conventional_labels and branch not in ("conventional", "conventional_adenoma"):
                 errors.append(
                     "Conventional adenoma trace cluster missing conventional workflow branch for {0}".format(cluster.cluster_id)
                 )
-            if cluster.l in ("ssl_suspicious_mucosa", "ssl_high_priority_mucosa") and branch != "serrated":
-                errors.append("SSL trace cluster missing serrated workflow branch for {0}".format(cluster.cluster_id))
+            if label in serrated_labels and branch != "serrated":
+                errors.append("Serrated trace cluster missing serrated workflow branch for {0}".format(cluster.cluster_id))
 
         evidence_chain = [record.to_dict() for record in observe_result["records"]]
         if not evidence_chain:
             errors.append("No observation evidence generated.")
+        for review in observe_result.get("global_reviews", []):
+            if str(review.metadata.get("review_source", "")).strip() != "chief_model":
+                errors.append("Observation global review must come from the real Chief model.")
         if not observe_result["integrated_report"]:
             errors.append("No integrated layered report generated.")
         if not observe_result["hierarchical_prediction"]:
@@ -125,6 +131,12 @@ class AuditAgent(object):
         conventional_adenoma_checklist = observe_result.get("conventional_adenoma_checklist", {})
         serrated_dysplasia_checklist = observe_result.get("serrated_dysplasia_checklist", {})
         conventional_dysplasia_checklist = observe_result.get("conventional_dysplasia_checklist", {})
+        ssl_checklist = observe_result.get("ssl_checklist", {})
+        hp_checklist = observe_result.get("hp_checklist", {})
+        tsa_checklist = observe_result.get("tsa_checklist", {})
+        tsa_cytological_atypia_checklist = observe_result.get("tsa_cytological_atypia_checklist", {})
+        conventional_architecture_checklist = observe_result.get("conventional_architecture_checklist", conventional_adenoma_checklist)
+        inflammatory_checklist = observe_result.get("inflammatory_checklist", {})
         serrated_support = self._supporting_count(serrated_checklist)
         abnormal_crypt_support = self._supporting_count(abnormal_crypt_checklist)
         dysplasia_support = self._supporting_count(dysplasia_checklist)
@@ -139,6 +151,7 @@ class AuditAgent(object):
             status = "warn"
 
         hierarchy = observe_result["hierarchical_prediction"]
+        final_case_assessment = self._hierarchy_branch(hierarchy, "final_case_assessment")
         serrated_prediction = self._hierarchy_branch(hierarchy, "serrated_lesion_assessment")
         abnormal_crypt_prediction = self._hierarchy_branch(hierarchy, "abnormal_crypt_assessment")
         dysplasia_prediction = self._hierarchy_branch(hierarchy, "dysplasia_assessment")
@@ -168,6 +181,12 @@ class AuditAgent(object):
                 "conventional_adenoma_checklist_completeness": self._checklist_completeness(conventional_adenoma_checklist),
                 "serrated_dysplasia_checklist_completeness": self._checklist_completeness(serrated_dysplasia_checklist),
                 "conventional_dysplasia_checklist_completeness": self._checklist_completeness(conventional_dysplasia_checklist),
+                "ssl_checklist_completeness": self._checklist_completeness(ssl_checklist),
+                "hp_checklist_completeness": self._checklist_completeness(hp_checklist),
+                "tsa_checklist_completeness": self._checklist_completeness(tsa_checklist),
+                "tsa_cytological_atypia_checklist_completeness": self._checklist_completeness(tsa_cytological_atypia_checklist),
+                "conventional_architecture_checklist_completeness": self._checklist_completeness(conventional_architecture_checklist),
+                "inflammatory_checklist_completeness": self._checklist_completeness(inflammatory_checklist),
                 "serrated_proxy_correct": serrated_correct,
                 "abnormal_crypt_proxy_correct": abnormal_crypt_correct,
                 "dysplasia_proxy_correct": dysplasia_correct,
@@ -177,6 +196,8 @@ class AuditAgent(object):
                 "conventional_adenoma_support_count": conventional_support,
                 "input_mode": input_mode,
                 "grid_first_bypassed_coords_export": grid_first_bypassed_coords_export,
+                "classification_status": hierarchy.get("classification_status", final_case_assessment.get("classification_status")),
+                "final_11_class": hierarchy.get("final_11_class", final_case_assessment.get("label")),
             },
         )
         return CaseResult(
@@ -203,7 +224,13 @@ class AuditAgent(object):
             conventional_adenoma_checklist=conventional_adenoma_checklist,
             serrated_dysplasia_checklist=serrated_dysplasia_checklist,
             conventional_dysplasia_checklist=conventional_dysplasia_checklist,
-            final_case_assessment=hierarchy.get("final_case_assessment", {}),
+            ssl_checklist=ssl_checklist,
+            hp_checklist=hp_checklist,
+            tsa_checklist=tsa_checklist,
+            tsa_cytological_atypia_checklist=tsa_cytological_atypia_checklist,
+            conventional_architecture_checklist=conventional_architecture_checklist,
+            inflammatory_checklist=inflammatory_checklist,
+            final_case_assessment=final_case_assessment,
             label=case_spec.label,
             status=status,
             metadata={

@@ -3,6 +3,7 @@ from pathlib import Path
 from adenoma_agent.trace_supervision import (
     FIXED_DIAGNOSTIC_PRIORITY,
     TRACE_LABEL_RUBRIC,
+    _looks_like_dual_model_global_screening_patch,
     score_patch_field_consistency,
     score_patch_semantics,
     selected_patch_ids_from_grid,
@@ -11,8 +12,9 @@ from adenoma_agent.trace_supervision import (
 
 
 ALLOWED_NAVIGATION_MAGNIFICATIONS = {
-    5.0: 256,
-    20.0: 64,
+    2.5: 4096,
+    5.0: 2048,
+    10.0: 1024,
 }
 
 ALLOWED_NAVIGATION_ACTIONS = {"inspect", "stop"}
@@ -49,6 +51,7 @@ def review_global_screening_payload(payload, grid_meta=None):
         structure = validate_patch_assignments(payload, grid_meta or {"grid_cells": []})
         semantics = score_patch_semantics(payload)
         field_consistency = score_patch_field_consistency(payload)
+        dual_model_mode = any(_looks_like_dual_model_global_screening_patch(patch) for patch in payload.get("patches", []) if isinstance(patch, dict))
 
         if not structure["coverage_ok"]:
             _append_error(errors, "global_screening.coverage_ok must be true")
@@ -64,6 +67,13 @@ def review_global_screening_payload(payload, grid_meta=None):
         for warning in semantics["warnings"]:
             if warning.get("warning") == "unknown_region_semantic":
                 _append_error(errors, "global_screening contains unknown region_semantic")
+            elif dual_model_mode and warning.get("warning") in {
+                "missing_dual_model_fields",
+                "missing_fusion_reasoning",
+                "invalid_fused_region_semantic",
+                "invalid_agreement_status",
+            }:
+                _append_error(errors, "global_screening contains incomplete dual-model audit information")
             else:
                 _append_warning(
                     warnings,
@@ -76,6 +86,15 @@ def review_global_screening_payload(payload, grid_meta=None):
         for warning in field_consistency["warnings"]:
             if warning.get("warning") == "invalid_priority":
                 _append_error(errors, "global_screening contains invalid diagnostic_priority values")
+            elif dual_model_mode and warning.get("warning") in {
+                "missing_dual_model_fields",
+                "missing_fusion_reasoning",
+                "invalid_fused_region_semantic",
+                "invalid_agreement_status",
+                "invalid_highmag",
+                "invalid_score_origin",
+            }:
+                _append_error(errors, "global_screening contains incomplete dual-model audit information")
             else:
                 _append_warning(
                     warnings,
@@ -93,6 +112,7 @@ def review_global_screening_payload(payload, grid_meta=None):
             "label_counts": semantics["label_counts"],
             "semantic_score": semantics["semantic_score"],
             "field_consistency_score": field_consistency["field_consistency_score"],
+            "dual_model_mode": dual_model_mode,
         }
         return {"ok": not errors, "errors": errors, "warnings": warnings, "metrics": metrics}
 
@@ -121,7 +141,7 @@ def review_navigation_payload(payload):
             _append_error(errors, "navigation.steps[{0}].m must be numeric".format(index))
             magnification = None
         elif float(magnification) not in ALLOWED_NAVIGATION_MAGNIFICATIONS:
-            _append_error(errors, "navigation.steps[{0}].m must be one of 5.0, 20.0".format(index))
+            _append_error(errors, "navigation.steps[{0}].m must be one of 2.5, 5.0, 10.0".format(index))
         if not isinstance(step.get("region_size_level0"), int):
             _append_error(errors, "navigation.steps[{0}].region_size_level0 must be an integer".format(index))
         elif magnification is not None:
@@ -148,6 +168,10 @@ def review_navigation_payload(payload):
         for key in required_metadata:
             if key not in metadata:
                 _append_error(errors, "navigation.steps[{0}].metadata.{1} is required".format(index, key))
+        if step.get("stage_gate") != "end":
+            for key in ("cell_id", "cell_priority"):
+                if key not in metadata:
+                    _append_error(errors, "navigation.steps[{0}].metadata.{1} is required".format(index, key))
         if "patch_id" in metadata and _normalize_patch_id(metadata.get("patch_id")) is None:
             _append_error(errors, "navigation.steps[{0}].metadata.patch_id must be [int, int]".format(index))
         if "region_size_level0" in metadata and not isinstance(metadata.get("region_size_level0"), int):
@@ -172,11 +196,19 @@ def review_observation_step_payload(payload):
     errors = []
     warnings = []
     observations = payload.get("observations") if isinstance(payload, dict) else None
+    global_reviews = payload.get("global_reviews") if isinstance(payload, dict) else None
     if not isinstance(observations, list):
         _append_error(errors, "observation.observations must be a list")
         observations = []
+    if not isinstance(global_reviews, list):
+        _append_error(errors, "observation.global_reviews must be a list")
+        global_reviews = []
     if not observations:
         _append_error(errors, "observation.observations must not be empty")
+    if observations and not global_reviews:
+        _append_error(errors, "observation.global_reviews must include at least one completed cell-level review")
+    if len(global_reviews) > len(observations):
+        _append_error(errors, "observation.global_reviews cannot outnumber observations")
     for index, record in enumerate(observations):
         if not isinstance(record, dict):
             _append_error(errors, "observation.observations[{0}] must be an object".format(index))
@@ -194,11 +226,39 @@ def review_observation_step_payload(payload):
             _append_error(errors, "observation.observations[{0}].metadata must be an object".format(index))
         elif "review_goal" not in metadata or "stage_gate" not in metadata:
             _append_error(errors, "observation.observations[{0}].metadata must include review_goal and stage_gate".format(index))
+    for index, review in enumerate(global_reviews):
+        if not isinstance(review, dict):
+            _append_error(errors, "observation.global_reviews[{0}] must be an object".format(index))
+            continue
+        for key in ("review_id", "source_step_id", "decision", "continue_reason", "resolved_branch_state"):
+            value = review.get(key)
+            if key == "resolved_branch_state":
+                if not isinstance(value, dict):
+                    _append_error(errors, "observation.global_reviews[{0}].resolved_branch_state must be an object".format(index))
+            elif key == "continue_reason":
+                if review.get("decision") == "continue" and (not isinstance(value, str) or not str(value).strip()):
+                    _append_error(errors, "observation.global_reviews[{0}].continue_reason is required for decision=continue".format(index))
+            elif not isinstance(value, str) or not str(value).strip():
+                _append_error(errors, "observation.global_reviews[{0}].{1} must be a non-empty string".format(index, key))
+        if not _is_number(review.get("chief_confidence")):
+            _append_error(errors, "observation.global_reviews[{0}].chief_confidence must be numeric".format(index))
+        if review.get("decision") == "continue":
+            nxt = review.get("next_visual_target")
+            if not isinstance(nxt, dict):
+                _append_error(errors, "observation.global_reviews[{0}].next_visual_target must be an object for decision=continue".format(index))
+            else:
+                for key in ("target_cluster_id", "target_branch", "target_region_semantic", "target_morphology_prompt", "preferred_magnification"):
+                    if key not in nxt:
+                        _append_error(errors, "observation.global_reviews[{0}].next_visual_target.{1} is required".format(index, key))
+        if review.get("decision") == "early_stop":
+            evidence = review.get("sufficient_evidence")
+            if not isinstance(evidence, list) or not evidence:
+                _append_error(errors, "observation.global_reviews[{0}].sufficient_evidence must be a non-empty list for decision=early_stop".format(index))
     return {
         "ok": not errors,
         "errors": errors,
         "warnings": warnings,
-        "metrics": {"observation_count": len(observations)},
+        "metrics": {"observation_count": len(observations), "global_review_count": len(global_reviews)},
     }
 
 

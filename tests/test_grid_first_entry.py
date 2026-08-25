@@ -7,6 +7,7 @@ from pathlib import Path
 from PIL import Image
 
 from adenoma_agent.agents.trace import TraceAgent
+from adenoma_agent.adapters.thumbnail_grid import ThumbnailGridPreprocessor
 from adenoma_agent.cli import load_grid_case_from_args
 from adenoma_agent.schemas import CaseSpec
 
@@ -152,6 +153,36 @@ class GridFirstEntryTest(unittest.TestCase):
             self.assertEqual(result["selection"]["mode"], "grid_input")
             self.assertTrue(Path(result["selection"]["paths"]["thumbnail"]).exists())
             self.assertEqual(result["clusters"][0].l, "ssl_suspicious_mucosa")
+
+    def test_thumbnail_grid_preprocessor_promotes_existing_artifacts(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            artifact_dir = Path(tmpdir) / "thumb_grid" / "case_001"
+            artifact_dir.mkdir(parents=True)
+            grid_thumbnail_path, metadata_path = self._write_grid_inputs(artifact_dir)
+            bundle = {
+                "runtime": {
+                    "thumbnail_grid_preprocess": {
+                        "enabled": True,
+                        "generate_if_missing": False,
+                        "output_root": str(Path(tmpdir) / "thumb_grid"),
+                        "case_subdir": True,
+                    }
+                }
+            }
+            case_spec = CaseSpec(
+                case_id="case_001",
+                slide_path="/tmp/case_001.svs",
+                task_type="wsi",
+                question="q",
+            )
+
+            result = ThumbnailGridPreprocessor(bundle).prepare(case_spec, Path(tmpdir) / "case_dir")
+
+            self.assertEqual(result["status"], "ready")
+            self.assertEqual(result["case_spec"].input_mode, "grid_thumbnail")
+            self.assertEqual(result["case_spec"].grid_thumbnail_path, str(grid_thumbnail_path))
+            self.assertEqual(result["case_spec"].grid_metadata_path, str(metadata_path))
+            self.assertEqual(result["thumbnail_mode"], "tissue_grid32x_svs")
 
 
 if __name__ == "__main__":

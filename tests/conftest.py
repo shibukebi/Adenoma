@@ -22,6 +22,17 @@ CURRENT_AGENTFLOW_TESTS = frozenset(
 )
 
 
+def _is_architecture_baseline_test(filename):
+    """Return whether *filename* belongs to the independent baseline suite.
+
+    Keep this prefix-based so new baseline tests do not need to edit the
+    AgentFlow/legacy allowlists.  The explicit check is intentionally applied
+    before the legacy fallback below.
+    """
+
+    return filename.startswith("test_architecture_baseline")
+
+
 def pytest_collection_modifyitems(config, items):
     agentflow = config.getoption("-m", default="")
     del agentflow  # marker selection is handled by pytest after this hook.
@@ -32,5 +43,8 @@ def pytest_collection_modifyitems(config, items):
         if path is None:
             path = getattr(item, "fspath", "")
         filename = Path(str(path)).name
-        marker = "agentflow" if filename in CURRENT_AGENTFLOW_TESTS else "legacy"
+        if _is_architecture_baseline_test(filename):
+            marker = "architecture_baseline"
+        else:
+            marker = "agentflow" if filename in CURRENT_AGENTFLOW_TESTS else "legacy"
         item.add_marker(getattr(pytest.mark, marker))

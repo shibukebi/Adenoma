@@ -4,6 +4,7 @@ from pathlib import Path
 from adenoma_agent.adapters.manifest import AdenomaManifestAdapter
 from adenoma_agent.config import load_bundle
 from adenoma_agent.eval import evaluate_run
+from adenoma_agent.experiment_harness import publish_harness_dashboard, run_grid_batch_experiment
 from adenoma_agent.orchestrator import AdenomaAgentOrchestrator
 from adenoma_agent.replay import build_replay_report, write_replay_report
 from adenoma_agent.schemas import CaseSpec, InterventionEvent
@@ -59,6 +60,26 @@ def build_parser():
 
     eval_run = subparsers.add_parser("eval-run", help="Aggregate a finished run directory.")
     eval_run.add_argument("--run-dir", required=True)
+
+    grid_batch = subparsers.add_parser("run-grid-batch-experiment", help="Run a grid-first batch experiment with harness summaries.")
+    grid_batch.add_argument("--wsi-dir", required=True)
+    grid_batch.add_argument("--grid-dir", required=True)
+    grid_batch.add_argument("--output-root", required=True)
+    grid_batch.add_argument("--runtime-config", default=None)
+    grid_batch.add_argument("--budget-config", default=None)
+    grid_batch.add_argument("--case-ids", default=None, help="Comma-separated case IDs. Defaults to all matching .svs/grid pairs.")
+    grid_batch.add_argument("--auto-start-services", action="store_true")
+    grid_batch.add_argument("--dashboard-output-dir", default=None, help="Export a dashboard for this harness run after the experiment finishes.")
+    grid_batch.add_argument("--switch-dashboard", action="store_true", help="After exporting the dashboard, switch the frontend server to it.")
+    grid_batch.add_argument("--dashboard-host", default="127.0.0.1")
+    grid_batch.add_argument("--dashboard-port", type=int, default=8000)
+
+    publish_dashboard = subparsers.add_parser("publish-harness-dashboard", help="Export a harness dashboard and optionally switch the frontend server.")
+    publish_dashboard.add_argument("--harness-run-dir", required=True)
+    publish_dashboard.add_argument("--output-dir", required=True)
+    publish_dashboard.add_argument("--switch-dashboard", action="store_true")
+    publish_dashboard.add_argument("--dashboard-host", default="127.0.0.1")
+    publish_dashboard.add_argument("--dashboard-port", type=int, default=8000)
     return parser
 
 
@@ -247,6 +268,47 @@ def command_eval_run(args):
     print(summary)
 
 
+def command_run_grid_batch_experiment(args):
+    bundle = load_bundle(args.runtime_config, args.budget_config)
+    case_ids = [item.strip() for item in str(args.case_ids or "").split(",") if item.strip()] or None
+    summary = run_grid_batch_experiment(
+        bundle=bundle,
+        wsi_dir=args.wsi_dir,
+        grid_dir=args.grid_dir,
+        output_root=args.output_root,
+        case_ids=case_ids,
+        auto_start_services=bool(args.auto_start_services),
+        dashboard_output_dir=args.dashboard_output_dir,
+        switch_dashboard=bool(args.switch_dashboard),
+        dashboard_host=args.dashboard_host,
+        dashboard_port=args.dashboard_port,
+    )
+    print("experiment_summary={0}".format(Path(args.output_root) / "experiment_summary.json"))
+    print("case_count={0}".format(summary.get("case_count", 0)))
+    print("quality_counts={0}".format(summary.get("quality_counts", {})))
+    if summary.get("dashboard"):
+        print("dashboard_index={0}".format(summary["dashboard"].get("index_html")))
+        frontend = summary["dashboard"].get("frontend") or {}
+        if frontend:
+            print("dashboard_url={0}".format(frontend.get("url")))
+
+
+def command_publish_harness_dashboard(args):
+    payload = publish_harness_dashboard(
+        run_dir=args.harness_run_dir,
+        output_dir=args.output_dir,
+        project_root=Path.cwd(),
+        host=args.dashboard_host,
+        port=args.dashboard_port,
+        switch_frontend=bool(args.switch_dashboard),
+    )
+    print("dashboard_index={0}".format(payload.get("index_html")))
+    frontend = payload.get("frontend") or {}
+    if frontend:
+        print("dashboard_url={0}".format(frontend.get("url")))
+        print("dashboard_health={0}".format(frontend.get("health")))
+
+
 def main():
     parser = build_parser()
     args = parser.parse_args()
@@ -262,6 +324,10 @@ def main():
         command_replay_case(args)
     elif args.command == "eval-run":
         command_eval_run(args)
+    elif args.command == "run-grid-batch-experiment":
+        command_run_grid_batch_experiment(args)
+    elif args.command == "publish-harness-dashboard":
+        command_publish_harness_dashboard(args)
     else:
         raise SystemExit("Unknown command: {0}".format(args.command))
 

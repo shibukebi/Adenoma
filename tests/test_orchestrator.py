@@ -66,33 +66,33 @@ class _FakeNavigateAgent(object):
                 x=800,
                 y=600,
                 m=5.0,
-                region_size_level0=256,
+                region_size_level0=2048,
                 need_to_see="Survey serrated lesion context.",
                 review_goal="serrated_lesion_assessment",
                 stage_gate="mucosa_or_serrated",
-                metadata={"cluster_id": "cluster_00", "region_size_level0": 256, "action": "inspect"},
+                metadata={"cluster_id": "cluster_00", "region_size_level0": 2048, "action": "inspect"},
             ),
             NavigationStep(
                 step_id="step_01",
                 x=800,
                 y=600,
-                m=20.0,
-                region_size_level0=64,
+                m=10.0,
+                region_size_level0=1024,
                 need_to_see="Inspect abnormal crypt architecture.",
                 review_goal="abnormal_crypt_assessment",
                 stage_gate="abnormal_crypt",
-                metadata={"cluster_id": "cluster_00", "region_size_level0": 64, "action": "inspect"},
+                metadata={"cluster_id": "cluster_00", "cell_id": "cell_0_0", "cell_priority": 4, "patch_id": [0, 0], "region_size_level0": 1024, "action": "inspect"},
             ),
             NavigationStep(
                 step_id="step_02",
                 x=800,
                 y=600,
                 m=5.0,
-                region_size_level0=256,
+                region_size_level0=2048,
                 need_to_see="Stop navigation.",
                 review_goal="integrated_impression",
                 stage_gate="end",
-                metadata={"region_size_level0": 256, "action": "stop"},
+                metadata={"region_size_level0": 2048, "action": "stop"},
             ),
         ]
         logger.log("NAVIGATE", "FakeNavigateAgent", output_ref="step_00", payload=steps[0].to_dict())
@@ -106,7 +106,7 @@ class _FakeNavigateAgent(object):
 
 class _FakeObserveAgent(object):
     def run(self, case_spec, trace_result, navigation_result, case_dir, logger):
-        from adenoma_agent.schemas import ObservationRecord, ReasoningState
+        from adenoma_agent.schemas import GlobalReviewRecord, ObservationRecord, ReasoningState
 
         record = ObservationRecord(
             step_id="step_00",
@@ -133,9 +133,28 @@ class _FakeObserveAgent(object):
             stop_reason="trajectory_complete",
             metadata={},
         )
+        global_review = GlobalReviewRecord(
+            review_id="global_review_0000",
+            source_step_id="step_00",
+            decision="early_stop",
+            continue_reason="",
+            chief_confidence=0.9,
+            resolved_branch_state={
+                "serrated": "supported",
+                "abnormal_crypt": "supported",
+                "conventional": "opposed",
+                "dysplasia": "unresolved",
+            },
+            sufficient_evidence=["Enough evidence gathered."],
+            unresolved_questions=[],
+            next_visual_target=None,
+            branch_correction_reason="",
+            metadata={"review_source": "chief_model"},
+        )
         logger.log("OBSERVE", "FakeObserveAgent", output_ref="step_00", payload=record.to_dict())
         return {
             "records": [record],
+            "global_reviews": [global_review],
             "reasoning_state": reasoning,
             "trajectory_steps": navigation_result["steps"],
             "hierarchical_prediction": {
@@ -211,6 +230,7 @@ class OrchestratorIntegrationTest(unittest.TestCase):
 
         bundle = {
             "runtime": {
+                "experiment": {"pipeline_mode": "trace_navigation_observation_chief"},
                 "project": {
                     "project_root": "/tmp/adenoma_agent_test",
                     "artifacts_root": "/tmp/adenoma_agent_test/artifacts",
@@ -251,8 +271,12 @@ class OrchestratorIntegrationTest(unittest.TestCase):
             case_dir = Path(result["case_dir"])
             self.assertTrue((case_dir / "case_result.json").exists())
             self.assertTrue((case_dir / "events.jsonl").exists())
+            self.assertFalse((case_dir / "junior").exists())
             rows = read_jsonl(case_dir / "events.jsonl")
             self.assertGreaterEqual(len(rows), 4)
+            self.assertEqual(rows[1]["state"], "PREPROCESS_THUMBNAIL_GRID")
+            self.assertEqual(rows[1]["status"], "skipped")
+            self.assertEqual(rows[2]["state"], "TRACE")
 
 
 if __name__ == "__main__":

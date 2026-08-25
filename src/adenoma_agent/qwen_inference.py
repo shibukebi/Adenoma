@@ -5,18 +5,22 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 
-CUDA_ENV_LIBS = [
-    "/data1/yuexin/.conda/envs/patho-r1/lib/python3.10/site-packages/nvidia/nvjitlink/lib",
-    "/data1/yuexin/.conda/envs/patho-r1/lib/python3.10/site-packages/nvidia/cusparse/lib",
-    "/data1/yuexin/.conda/envs/patho-r1/lib",
-]
+def _current_env_cuda_libs():
+    prefix = Path(sys.prefix)
+    version_dir = "python{0}.{1}".format(sys.version_info.major, sys.version_info.minor)
+    candidates = [
+        prefix / "lib" / version_dir / "site-packages" / "nvidia" / "nvjitlink" / "lib",
+        prefix / "lib" / version_dir / "site-packages" / "nvidia" / "cusparse" / "lib",
+        prefix / "lib",
+    ]
+    return [str(path) for path in candidates if path.exists()]
 
 
 def ensure_torch_runtime():
     if os.environ.get("_CPATHAGENT_QWEN_LD_READY") == "1":
         return
     current = [part for part in os.environ.get("LD_LIBRARY_PATH", "").split(":") if part]
-    new_parts = [part for part in CUDA_ENV_LIBS if Path(part).exists()]
+    new_parts = list(_current_env_cuda_libs())
     for part in current:
         if part not in new_parts:
             new_parts.append(part)
