@@ -2,6 +2,10 @@
 
 面向两阶段数字病理 evidence study 的 React + TypeScript 前端演示：A 阶段专家主动标记 1–5 个 ROI；B 阶段将去重后的候选以固定盲 ID / 固定随机顺序交给裁决者。所有演示数据通过浏览器 `localStorage` 持久化。
 
+Status: `MVP`
+`BACKEND_READY=false`
+`PRODUCTION_READY=false`
+
 ## 启动
 
 要求 Node.js 16（当前依赖固定为 React 18 / Vite 4，兼容 Node 16）。
