@@ -1,0 +1,91 @@
+schema_version: frozen_conch_5x_mil_v1
+status: implementation_baseline
+
+# This experiment is intentionally independent of AgentFlow.  Source WSI
+# roots are read-only; every generated artifact belongs under output_root.
+device:
+  requested: cuda:0
+  physical_selection: CUDA_VISIBLE_DEVICES
+  require_cuda: true
+  allow_cpu_fallback: false
+  preflight_batch_candidates: [8, 16, 32]
+
+data:
+  primary_source: adenoma_yx
+  yx_root: /mnt/zhengke_usb2/yuexin_data/Adenoma_yx
+  hp_root: /mnt/zhengke_usb2/yuexin_data/Adenoma_hp
+  label_workbook: data/label/Adenoma_filtered.xlsx
+  output_root: artifacts/architecture_baselines/frozen_conch_5x_mil_v1
+  seven_class_types:
+    - Tubular adenoma
+    - Hyperplastic polyps
+    - Tubulovillous adenoma
+    - Sessile serrated adenoma
+    - Inflammatory polyp
+    - Traditional serrated adenoma
+    - Unclassified serrated adenoma
+  training_sources: [adenoma_yx]
+  audit_only_sources: [adenoma_hp]
+  label_leakage_policy: labels_are_loaded_only_by_split_and_training_stages
+  grade_usage: post_hoc_only
+  duplicate_label_policy: exclude_conflicting_slide_keys
+  specimen_group_policy: yx_second_numeric_token_without_last_three_digits
+
+mucosa:
+  manifest_name: five_x_patch_manifest.jsonl
+  requested_magnification: 5.0
+  min_mucosa_coverage: 0.30
+  training_min_mucosa_coverage: 0.60
+  output_pixels: 256
+  resume: true
+  source_data_read_only: true
+
+conch:
+  model_name: conch_ViT-B-16
+  checkpoint: models/CONCH/pytorch_model.bin
+  checkpoint_sha256: 40a9644b9ba0e83a74576e0a5e5f7313599fa9c9cdaf3c20f8a3e271b0e9ae7c
+  representation: pre_projection_unnormalized
+  encode_image:
+    proj_contrast: false
+    normalize: false
+  frozen: true
+  cache_dtype: float16
+  train_dtype: float32
+  cache_layout: per_slide_features_index_metadata
+
+splits:
+  strategy: stratified_group_kfold
+  n_splits: 5
+  seed: 17
+  test_fold_rotation: true
+  validation_fold_is_next: true
+  group_leakage_forbidden: true
+
+models:
+  input_dim: 512
+  classes: 7
+  names: [mean_pool, abmil, dsmil]
+  hidden_dim: 256
+  dropout: 0.25
+  max_epochs: 100
+  patience: 15
+  learning_rate: 0.0001
+  weight_decay: 0.0001
+  batch_size: 1
+  gradient_accumulation: 1
+  seeds: [17, 29, 43]
+  selection_metric: validation_macro_f1
+  test_evaluation_policy: evaluate_once_after_checkpoint_selection
+
+baseline1:
+  name: frozen_conch_linear_mlp_patch_roi
+  status: annotation_blocked
+  require_real_patch_or_roi_annotations: true
+  forbid_slide_label_broadcast: true
+
+evaluation:
+  bootstrap_unit: specimen_family
+  bootstrap_replicates: 2000
+  confidence_level: 0.95
+  report_attention_as: candidate_diagnostic_relevance
+  report_instance_scores_as: candidate_diagnostic_relevance
