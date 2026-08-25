@@ -1,0 +1,36 @@
+{
+  "experiment": "WSI 10-sample grid five-class selected-cell predecessor",
+  "status": "SUPERSEDED",
+  "git_commit": "23bafe773ca93a74566347b1befc386b8232841c",
+  "script": "scripts/run_wsi_grid_5class_experiment.py",
+  "config": "run_config.json",
+  "created_at": "2026-08-25T16:35:31.947522+08:00",
+  "input_source": "/data1/yuexin/Adenoma/data/WSI_10sample",
+  "superseded_by": "artifacts/wsi10sample_grid5class_uni_conch_digepath_full_slide_allcells",
+  "source_path": "artifacts/wsi10sample_grid5class_uni_conch_digepath_full",
+  "removed_categories": [
+    "recomputable patch crops"
+  ],
+  "notes": "include_all_cells=false. Result JSONL files are empty and full_runner.log records an OpenSlide failure.",
+  "original_size_bytes": 2866945093,
+  "source_file_count_before": 10697,
+  "retained_files": [
+    "README.md",
+    "errors.jsonl",
+    "fused_5class_assignments.jsonl",
+    "logs/conch.log",
+    "logs/conch.pid",
+    "logs/digepath.log",
+    "logs/digepath.pid",
+    "logs/full_runner.log",
+    "logs/uni_prismnet.log",
+    "logs/uni_prismnet.pid",
+    "manifest.jsonl",
+    "predictions.jsonl",
+    "provenance.json",
+    "run_config.json"
+  ],
+  "retained_size_bytes_before_provenance": 356773,
+  "retained_size_bytes": 357965,
+  "source_crops_bytes": 2866589155
+}
