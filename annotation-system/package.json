@@ -1,0 +1,29 @@
+{
+  "name": "pathology-evidence-annotation-mvp",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "4.2.1",
+    "vite": "4.5.3",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "6.4.5",
+    "@testing-library/react": "14.3.1",
+    "@types/react": "18.2.79",
+    "@types/react-dom": "18.2.25",
+    "jsdom": "22.1.0",
+    "typescript": "5.4.5",
+    "vitest": "0.32.4",
+    "vite": "4.5.3"
+  }
+}
