@@ -9,3 +9,15 @@ artifacts/*
 data/
 
 .pytest_cache/
+
+# External repositories and reference resources are kept outside the
+# Adenoma source history. Their own repositories remain independently usable.
+/PathFound/
+/models/
+/article/
+
+# Local development outputs
+node_modules/
+dist/
+build/
+tmp_*/
