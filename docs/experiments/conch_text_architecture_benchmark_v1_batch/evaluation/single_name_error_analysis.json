@@ -1,0 +1,19 @@
+{
+  "primary": {
+    "serrated": {
+      "to_serrated": 0,
+      "to_tubular": 0,
+      "to_villous": 1
+    },
+    "tubular": {
+      "to_serrated": 40,
+      "to_tubular": 0,
+      "to_villous": 0
+    },
+    "villous": {
+      "to_serrated": 9,
+      "to_tubular": 0,
+      "to_villous": 0
+    }
+  }
+}

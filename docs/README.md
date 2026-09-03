@@ -25,6 +25,7 @@
 - [Frozen CONCH 5x baseline report](model/architecture_baseline_report.md)
 - [Frozen CONCH 5x baseline runbook](model/architecture_baseline_runbook.md)
 - [CONCH text architecture annotation preparation](model/conch_text_architecture_annotation_preparation_report.md)
+- [CONCH text architecture benchmark v1 GitHub batch](experiments/conch_text_architecture_benchmark_v1_batch/README.md)
 - [Pathology evidence annotation MVP](../annotation-system/README.md)
 
 These documents describe active experiment state and execution gates. They must not be

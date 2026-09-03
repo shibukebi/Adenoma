@@ -1,0 +1,907 @@
+{
+  "fallback": "safe_slide_id",
+  "grouping_resolution": "family",
+  "rows": [
+    {
+      "family_id": "FAMILY_000010",
+      "roi_id": "ROI_000001",
+      "safe_slide_id": "CASE_000037"
+    },
+    {
+      "family_id": "FAMILY_000137",
+      "roi_id": "ROI_000002",
+      "safe_slide_id": "CASE_000115"
+    },
+    {
+      "family_id": "FAMILY_000004",
+      "roi_id": "ROI_000003",
+      "safe_slide_id": "CASE_000078"
+    },
+    {
+      "family_id": "FAMILY_000129",
+      "roi_id": "ROI_000004",
+      "safe_slide_id": "CASE_000021"
+    },
+    {
+      "family_id": "FAMILY_000097",
+      "roi_id": "ROI_000005",
+      "safe_slide_id": "CASE_000023"
+    },
+    {
+      "family_id": "FAMILY_000113",
+      "roi_id": "ROI_000006",
+      "safe_slide_id": "CASE_000169"
+    },
+    {
+      "family_id": "FAMILY_000068",
+      "roi_id": "ROI_000007",
+      "safe_slide_id": "CASE_000084"
+    },
+    {
+      "family_id": "FAMILY_000132",
+      "roi_id": "ROI_000008",
+      "safe_slide_id": "CASE_000001"
+    },
+    {
+      "family_id": "FAMILY_000101",
+      "roi_id": "ROI_000009",
+      "safe_slide_id": "CASE_000162"
+    },
+    {
+      "family_id": "FAMILY_000140",
+      "roi_id": "ROI_000010",
+      "safe_slide_id": "CASE_000107"
+    },
+    {
+      "family_id": "FAMILY_000016",
+      "roi_id": "ROI_000011",
+      "safe_slide_id": "CASE_000081"
+    },
+    {
+      "family_id": "FAMILY_000120",
+      "roi_id": "ROI_000012",
+      "safe_slide_id": "CASE_000032"
+    },
+    {
+      "family_id": "FAMILY_000040",
+      "roi_id": "ROI_000013",
+      "safe_slide_id": "CASE_000160"
+    },
+    {
+      "family_id": "FAMILY_000016",
+      "roi_id": "ROI_000014",
+      "safe_slide_id": "CASE_000137"
+    },
+    {
+      "family_id": "FAMILY_000038",
+      "roi_id": "ROI_000015",
+      "safe_slide_id": "CASE_000163"
+    },
+    {
+      "family_id": "FAMILY_000038",
+      "roi_id": "ROI_000016",
+      "safe_slide_id": "CASE_000043"
+    },
+    {
+      "family_id": "FAMILY_000017",
+      "roi_id": "ROI_000017",
+      "safe_slide_id": "CASE_000038"
+    },
+    {
+      "family_id": "FAMILY_000034",
+      "roi_id": "ROI_000018",
+      "safe_slide_id": "CASE_000060"
+    },
+    {
+      "family_id": "FAMILY_000007",
+      "roi_id": "ROI_000019",
+      "safe_slide_id": "CASE_000092"
+    },
+    {
+      "family_id": "FAMILY_000087",
+      "roi_id": "ROI_000020",
+      "safe_slide_id": "CASE_000028"
+    },
+    {
+      "family_id": "FAMILY_000022",
+      "roi_id": "ROI_000021",
+      "safe_slide_id": "CASE_000024"
+    },
+    {
+      "family_id": "FAMILY_000094",
+      "roi_id": "ROI_000022",
+      "safe_slide_id": "CASE_000016"
+    },
+    {
+      "family_id": "FAMILY_000102",
+      "roi_id": "ROI_000023",
+      "safe_slide_id": "CASE_000042"
+    },
+    {
+      "family_id": "FAMILY_000013",
+      "roi_id": "ROI_000024",
+      "safe_slide_id": "CASE_000010"
+    },
+    {
+      "family_id": "FAMILY_000105",
+      "roi_id": "ROI_000025",
+      "safe_slide_id": "CASE_000180"
+    },
+    {
+      "family_id": "FAMILY_000001",
+      "roi_id": "ROI_000026",
+      "safe_slide_id": "CASE_000166"
+    },
+    {
+      "family_id": "FAMILY_000060",
+      "roi_id": "ROI_000027",
+      "safe_slide_id": "CASE_000177"
+    },
+    {
+      "family_id": "FAMILY_000091",
+      "roi_id": "ROI_000028",
+      "safe_slide_id": "CASE_000075"
+    },
+    {
+      "family_id": "FAMILY_000002",
+      "roi_id": "ROI_000029",
+      "safe_slide_id": "CASE_000063"
+    },
+    {
+      "family_id": "FAMILY_000036",
+      "roi_id": "ROI_000030",
+      "safe_slide_id": "CASE_000030"
+    },
+    {
+      "family_id": "FAMILY_000075",
+      "roi_id": "ROI_000031",
+      "safe_slide_id": "CASE_000057"
+    },
+    {
+      "family_id": "FAMILY_000036",
+      "roi_id": "ROI_000032",
+      "safe_slide_id": "CASE_000004"
+    },
+    {
+      "family_id": "FAMILY_000063",
+      "roi_id": "ROI_000033",
+      "safe_slide_id": "CASE_000011"
+    },
+    {
+      "family_id": "FAMILY_000027",
+      "roi_id": "ROI_000034",
+      "safe_slide_id": "CASE_000058"
+    },
+    {
+      "family_id": "FAMILY_000050",
+      "roi_id": "ROI_000035",
+      "safe_slide_id": "CASE_000033"
+    },
+    {
+      "family_id": "FAMILY_000111",
+      "roi_id": "ROI_000036",
+      "safe_slide_id": "CASE_000035"
+    },
+    {
+      "family_id": "FAMILY_000009",
+      "roi_id": "ROI_000037",
+      "safe_slide_id": "CASE_000176"
+    },
+    {
+      "family_id": "FAMILY_000018",
+      "roi_id": "ROI_000038",
+      "safe_slide_id": "CASE_000064"
+    },
+    {
+      "family_id": "FAMILY_000039",
+      "roi_id": "ROI_000039",
+      "safe_slide_id": "CASE_000167"
+    },
+    {
+      "family_id": "FAMILY_000028",
+      "roi_id": "ROI_000040",
+      "safe_slide_id": "CASE_000007"
+    },
+    {
+      "family_id": "FAMILY_000021",
+      "roi_id": "ROI_000041",
+      "safe_slide_id": "CASE_000126"
+    },
+    {
+      "family_id": "FAMILY_000108",
+      "roi_id": "ROI_000042",
+      "safe_slide_id": "CASE_000113"
+    },
+    {
+      "family_id": "FAMILY_000139",
+      "roi_id": "ROI_000043",
+      "safe_slide_id": "CASE_000154"
+    },
+    {
+      "family_id": "FAMILY_000020",
+      "roi_id": "ROI_000044",
+      "safe_slide_id": "CASE_000012"
+    },
+    {
+      "family_id": "FAMILY_000108",
+      "roi_id": "ROI_000045",
+      "safe_slide_id": "CASE_000091"
+    },
+    {
+      "family_id": "FAMILY_000046",
+      "roi_id": "ROI_000046",
+      "safe_slide_id": "CASE_000133"
+    },
+    {
+      "family_id": "FAMILY_000024",
+      "roi_id": "ROI_000047",
+      "safe_slide_id": "CASE_000090"
+    },
+    {
+      "family_id": "FAMILY_000044",
+      "roi_id": "ROI_000048",
+      "safe_slide_id": "CASE_000014"
+    },
+    {
+      "family_id": "FAMILY_000106",
+      "roi_id": "ROI_000049",
+      "safe_slide_id": "CASE_000178"
+    },
+    {
+      "family_id": "FAMILY_000026",
+      "roi_id": "ROI_000050",
+      "safe_slide_id": "CASE_000173"
+    },
+    {
+      "family_id": "FAMILY_000036",
+      "roi_id": "ROI_000051",
+      "safe_slide_id": "CASE_000022"
+    },
+    {
+      "family_id": "FAMILY_000100",
+      "roi_id": "ROI_000052",
+      "safe_slide_id": "CASE_000044"
+    },
+    {
+      "family_id": "FAMILY_000141",
+      "roi_id": "ROI_000053",
+      "safe_slide_id": "CASE_000003"
+    },
+    {
+      "family_id": "FAMILY_000071",
+      "roi_id": "ROI_000054",
+      "safe_slide_id": "CASE_000152"
+    },
+    {
+      "family_id": "FAMILY_000036",
+      "roi_id": "ROI_000055",
+      "safe_slide_id": "CASE_000076"
+    },
+    {
+      "family_id": "FAMILY_000059",
+      "roi_id": "ROI_000056",
+      "safe_slide_id": "CASE_000175"
+    },
+    {
+      "family_id": "FAMILY_000035",
+      "roi_id": "ROI_000057",
+      "safe_slide_id": "CASE_000118"
+    },
+    {
+      "family_id": "FAMILY_000092",
+      "roi_id": "ROI_000058",
+      "safe_slide_id": "CASE_000141"
+    },
+    {
+      "family_id": "FAMILY_000057",
+      "roi_id": "ROI_000059",
+      "safe_slide_id": "CASE_000134"
+    },
+    {
+      "family_id": "FAMILY_000048",
+      "roi_id": "ROI_000060",
+      "safe_slide_id": "CASE_000096"
+    },
+    {
+      "family_id": "FAMILY_000128",
+      "roi_id": "ROI_000061",
+      "safe_slide_id": "CASE_000087"
+    },
+    {
+      "family_id": "FAMILY_000088",
+      "roi_id": "ROI_000062",
+      "safe_slide_id": "CASE_000156"
+    },
+    {
+      "family_id": "FAMILY_000110",
+      "roi_id": "ROI_000063",
+      "safe_slide_id": "CASE_000054"
+    },
+    {
+      "family_id": "FAMILY_000133",
+      "roi_id": "ROI_000064",
+      "safe_slide_id": "CASE_000159"
+    },
+    {
+      "family_id": "FAMILY_000113",
+      "roi_id": "ROI_000065",
+      "safe_slide_id": "CASE_000049"
+    },
+    {
+      "family_id": "FAMILY_000067",
+      "roi_id": "ROI_000066",
+      "safe_slide_id": "CASE_000005"
+    },
+    {
+      "family_id": "FAMILY_000065",
+      "roi_id": "ROI_000067",
+      "safe_slide_id": "CASE_000069"
+    },
+    {
+      "family_id": "FAMILY_000095",
+      "roi_id": "ROI_000068",
+      "safe_slide_id": "CASE_000168"
+    },
+    {
+      "family_id": "FAMILY_000037",
+      "roi_id": "ROI_000069",
+      "safe_slide_id": "CASE_000106"
+    },
+    {
+      "family_id": "FAMILY_000116",
+      "roi_id": "ROI_000070",
+      "safe_slide_id": "CASE_000130"
+    },
+    {
+      "family_id": "FAMILY_000069",
+      "roi_id": "ROI_000071",
+      "safe_slide_id": "CASE_000045"
+    },
+    {
+      "family_id": "FAMILY_000044",
+      "roi_id": "ROI_000072",
+      "safe_slide_id": "CASE_000149"
+    },
+    {
+      "family_id": "FAMILY_000114",
+      "roi_id": "ROI_000073",
+      "safe_slide_id": "CASE_000155"
+    },
+    {
+      "family_id": "FAMILY_000043",
+      "roi_id": "ROI_000074",
+      "safe_slide_id": "CASE_000122"
+    },
+    {
+      "family_id": "FAMILY_000003",
+      "roi_id": "ROI_000075",
+      "safe_slide_id": "CASE_000110"
+    },
+    {
+      "family_id": "FAMILY_000031",
+      "roi_id": "ROI_000076",
+      "safe_slide_id": "CASE_000142"
+    },
+    {
+      "family_id": "FAMILY_000090",
+      "roi_id": "ROI_000077",
+      "safe_slide_id": "CASE_000008"
+    },
+    {
+      "family_id": "FAMILY_000073",
+      "roi_id": "ROI_000078",
+      "safe_slide_id": "CASE_000051"
+    },
+    {
+      "family_id": "FAMILY_000089",
+      "roi_id": "ROI_000079",
+      "safe_slide_id": "CASE_000102"
+    },
+    {
+      "family_id": "FAMILY_000113",
+      "roi_id": "ROI_000080",
+      "safe_slide_id": "CASE_000108"
+    },
+    {
+      "family_id": "FAMILY_000131",
+      "roi_id": "ROI_000081",
+      "safe_slide_id": "CASE_000095"
+    },
+    {
+      "family_id": "FAMILY_000076",
+      "roi_id": "ROI_000082",
+      "safe_slide_id": "CASE_000097"
+    },
+    {
+      "family_id": "FAMILY_000042",
+      "roi_id": "ROI_000083",
+      "safe_slide_id": "CASE_000017"
+    },
+    {
+      "family_id": "FAMILY_000073",
+      "roi_id": "ROI_000084",
+      "safe_slide_id": "CASE_000131"
+    },
+    {
+      "family_id": "FAMILY_000052",
+      "roi_id": "ROI_000085",
+      "safe_slide_id": "CASE_000040"
+    },
+    {
+      "family_id": "FAMILY_000080",
+      "roi_id": "ROI_000086",
+      "safe_slide_id": "CASE_000077"
+    },
+    {
+      "family_id": "FAMILY_000090",
+      "roi_id": "ROI_000087",
+      "safe_slide_id": "CASE_000145"
+    },
+    {
+      "family_id": "FAMILY_000066",
+      "roi_id": "ROI_000088",
+      "safe_slide_id": "CASE_000041"
+    },
+    {
+      "family_id": "FAMILY_000058",
+      "roi_id": "ROI_000089",
+      "safe_slide_id": "CASE_000161"
+    },
+    {
+      "family_id": "FAMILY_000043",
+      "roi_id": "ROI_000090",
+      "safe_slide_id": "CASE_000006"
+    },
+    {
+      "family_id": "FAMILY_000085",
+      "roi_id": "ROI_000091",
+      "safe_slide_id": "CASE_000048"
+    },
+    {
+      "family_id": "FAMILY_000086",
+      "roi_id": "ROI_000092",
+      "safe_slide_id": "CASE_000018"
+    },
+    {
+      "family_id": "FAMILY_000015",
+      "roi_id": "ROI_000093",
+      "safe_slide_id": "CASE_000135"
+    },
+    {
+      "family_id": "FAMILY_000123",
+      "roi_id": "ROI_000094",
+      "safe_slide_id": "CASE_000074"
+    },
+    {
+      "family_id": "FAMILY_000018",
+      "roi_id": "ROI_000095",
+      "safe_slide_id": "CASE_000031"
+    },
+    {
+      "family_id": "FAMILY_000061",
+      "roi_id": "ROI_000096",
+      "safe_slide_id": "CASE_000139"
+    },
+    {
+      "family_id": "FAMILY_000109",
+      "roi_id": "ROI_000097",
+      "safe_slide_id": "CASE_000127"
+    },
+    {
+      "family_id": "FAMILY_000025",
+      "roi_id": "ROI_000098",
+      "safe_slide_id": "CASE_000013"
+    },
+    {
+      "family_id": "FAMILY_000032",
+      "roi_id": "ROI_000099",
+      "safe_slide_id": "CASE_000170"
+    },
+    {
+      "family_id": "FAMILY_000072",
+      "roi_id": "ROI_000100",
+      "safe_slide_id": "CASE_000062"
+    },
+    {
+      "family_id": "FAMILY_000145",
+      "roi_id": "ROI_000101",
+      "safe_slide_id": "CASE_000009"
+    },
+    {
+      "family_id": "FAMILY_000006",
+      "roi_id": "ROI_000102",
+      "safe_slide_id": "CASE_000171"
+    },
+    {
+      "family_id": "FAMILY_000119",
+      "roi_id": "ROI_000103",
+      "safe_slide_id": "CASE_000143"
+    },
+    {
+      "family_id": "FAMILY_000109",
+      "roi_id": "ROI_000104",
+      "safe_slide_id": "CASE_000088"
+    },
+    {
+      "family_id": "FAMILY_000023",
+      "roi_id": "ROI_000105",
+      "safe_slide_id": "CASE_000059"
+    },
+    {
+      "family_id": "FAMILY_000134",
+      "roi_id": "ROI_000106",
+      "safe_slide_id": "CASE_000129"
+    },
+    {
+      "family_id": "FAMILY_000002",
+      "roi_id": "ROI_000107",
+      "safe_slide_id": "CASE_000100"
+    },
+    {
+      "family_id": "FAMILY_000099",
+      "roi_id": "ROI_000108",
+      "safe_slide_id": "CASE_000068"
+    },
+    {
+      "family_id": "FAMILY_000077",
+      "roi_id": "ROI_000109",
+      "safe_slide_id": "CASE_000132"
+    },
+    {
+      "family_id": "FAMILY_000135",
+      "roi_id": "ROI_000110",
+      "safe_slide_id": "CASE_000172"
+    },
+    {
+      "family_id": "FAMILY_000113",
+      "roi_id": "ROI_000111",
+      "safe_slide_id": "CASE_000103"
+    },
+    {
+      "family_id": "FAMILY_000041",
+      "roi_id": "ROI_000112",
+      "safe_slide_id": "CASE_000002"
+    },
+    {
+      "family_id": "FAMILY_000051",
+      "roi_id": "ROI_000113",
+      "safe_slide_id": "CASE_000079"
+    },
+    {
+      "family_id": "FAMILY_000081",
+      "roi_id": "ROI_000114",
+      "safe_slide_id": "CASE_000109"
+    },
+    {
+      "family_id": "FAMILY_000053",
+      "roi_id": "ROI_000115",
+      "safe_slide_id": "CASE_000066"
+    },
+    {
+      "family_id": "FAMILY_000056",
+      "roi_id": "ROI_000116",
+      "safe_slide_id": "CASE_000085"
+    },
+    {
+      "family_id": "FAMILY_000136",
+      "roi_id": "ROI_000117",
+      "safe_slide_id": "CASE_000073"
+    },
+    {
+      "family_id": "FAMILY_000115",
+      "roi_id": "ROI_000118",
+      "safe_slide_id": "CASE_000025"
+    },
+    {
+      "family_id": "FAMILY_000002",
+      "roi_id": "ROI_000119",
+      "safe_slide_id": "CASE_000140"
+    },
+    {
+      "family_id": "FAMILY_000126",
+      "roi_id": "ROI_000120",
+      "safe_slide_id": "CASE_000015"
+    },
+    {
+      "family_id": "FAMILY_000014",
+      "roi_id": "ROI_000121",
+      "safe_slide_id": "CASE_000151"
+    },
+    {
+      "family_id": "FAMILY_000079",
+      "roi_id": "ROI_000122",
+      "safe_slide_id": "CASE_000117"
+    },
+    {
+      "family_id": "FAMILY_000055",
+      "roi_id": "ROI_000123",
+      "safe_slide_id": "CASE_000067"
+    },
+    {
+      "family_id": "FAMILY_000121",
+      "roi_id": "ROI_000124",
+      "safe_slide_id": "CASE_000101"
+    },
+    {
+      "family_id": "FAMILY_000070",
+      "roi_id": "ROI_000125",
+      "safe_slide_id": "CASE_000144"
+    },
+    {
+      "family_id": "FAMILY_000067",
+      "roi_id": "ROI_000126",
+      "safe_slide_id": "CASE_000082"
+    },
+    {
+      "family_id": "FAMILY_000003",
+      "roi_id": "ROI_000127",
+      "safe_slide_id": "CASE_000174"
+    },
+    {
+      "family_id": "FAMILY_000118",
+      "roi_id": "ROI_000128",
+      "safe_slide_id": "CASE_000026"
+    },
+    {
+      "family_id": "FAMILY_000062",
+      "roi_id": "ROI_000129",
+      "safe_slide_id": "CASE_000147"
+    },
+    {
+      "family_id": "FAMILY_000082",
+      "roi_id": "ROI_000130",
+      "safe_slide_id": "CASE_000061"
+    },
+    {
+      "family_id": "FAMILY_000049",
+      "roi_id": "ROI_000131",
+      "safe_slide_id": "CASE_000099"
+    },
+    {
+      "family_id": "FAMILY_000125",
+      "roi_id": "ROI_000132",
+      "safe_slide_id": "CASE_000027"
+    },
+    {
+      "family_id": "FAMILY_000144",
+      "roi_id": "ROI_000133",
+      "safe_slide_id": "CASE_000123"
+    },
+    {
+      "family_id": "FAMILY_000142",
+      "roi_id": "ROI_000134",
+      "safe_slide_id": "CASE_000164"
+    },
+    {
+      "family_id": "FAMILY_000033",
+      "roi_id": "ROI_000135",
+      "safe_slide_id": "CASE_000052"
+    },
+    {
+      "family_id": "FAMILY_000124",
+      "roi_id": "ROI_000136",
+      "safe_slide_id": "CASE_000119"
+    },
+    {
+      "family_id": "FAMILY_000074",
+      "roi_id": "ROI_000137",
+      "safe_slide_id": "CASE_000114"
+    },
+    {
+      "family_id": "FAMILY_000081",
+      "roi_id": "ROI_000138",
+      "safe_slide_id": "CASE_000138"
+    },
+    {
+      "family_id": "FAMILY_000030",
+      "roi_id": "ROI_000139",
+      "safe_slide_id": "CASE_000136"
+    },
+    {
+      "family_id": "FAMILY_000011",
+      "roi_id": "ROI_000140",
+      "safe_slide_id": "CASE_000120"
+    },
+    {
+      "family_id": "FAMILY_000029",
+      "roi_id": "ROI_000141",
+      "safe_slide_id": "CASE_000050"
+    },
+    {
+      "family_id": "FAMILY_000059",
+      "roi_id": "ROI_000142",
+      "safe_slide_id": "CASE_000034"
+    },
+    {
+      "family_id": "FAMILY_000087",
+      "roi_id": "ROI_000143",
+      "safe_slide_id": "CASE_000150"
+    },
+    {
+      "family_id": "FAMILY_000113",
+      "roi_id": "ROI_000144",
+      "safe_slide_id": "CASE_000116"
+    },
+    {
+      "family_id": "FAMILY_000045",
+      "roi_id": "ROI_000145",
+      "safe_slide_id": "CASE_000029"
+    },
+    {
+      "family_id": "FAMILY_000054",
+      "roi_id": "ROI_000146",
+      "safe_slide_id": "CASE_000056"
+    },
+    {
+      "family_id": "FAMILY_000008",
+      "roi_id": "ROI_000147",
+      "safe_slide_id": "CASE_000121"
+    },
+    {
+      "family_id": "FAMILY_000138",
+      "roi_id": "ROI_000148",
+      "safe_slide_id": "CASE_000047"
+    },
+    {
+      "family_id": "FAMILY_000103",
+      "roi_id": "ROI_000149",
+      "safe_slide_id": "CASE_000086"
+    },
+    {
+      "family_id": "FAMILY_000118",
+      "roi_id": "ROI_000150",
+      "safe_slide_id": "CASE_000071"
+    },
+    {
+      "family_id": "FAMILY_000107",
+      "roi_id": "ROI_000151",
+      "safe_slide_id": "CASE_000036"
+    },
+    {
+      "family_id": "FAMILY_000002",
+      "roi_id": "ROI_000152",
+      "safe_slide_id": "CASE_000072"
+    },
+    {
+      "family_id": "FAMILY_000047",
+      "roi_id": "ROI_000153",
+      "safe_slide_id": "CASE_000148"
+    },
+    {
+      "family_id": "FAMILY_000058",
+      "roi_id": "ROI_000154",
+      "safe_slide_id": "CASE_000104"
+    },
+    {
+      "family_id": "FAMILY_000083",
+      "roi_id": "ROI_000155",
+      "safe_slide_id": "CASE_000020"
+    },
+    {
+      "family_id": "FAMILY_000117",
+      "roi_id": "ROI_000156",
+      "safe_slide_id": "CASE_000165"
+    },
+    {
+      "family_id": "FAMILY_000104",
+      "roi_id": "ROI_000157",
+      "safe_slide_id": "CASE_000094"
+    },
+    {
+      "family_id": "FAMILY_000084",
+      "roi_id": "ROI_000158",
+      "safe_slide_id": "CASE_000065"
+    },
+    {
+      "family_id": "FAMILY_000122",
+      "roi_id": "ROI_000159",
+      "safe_slide_id": "CASE_000157"
+    },
+    {
+      "family_id": "FAMILY_000098",
+      "roi_id": "ROI_000160",
+      "safe_slide_id": "CASE_000111"
+    },
+    {
+      "family_id": "FAMILY_000064",
+      "roi_id": "ROI_000161",
+      "safe_slide_id": "CASE_000153"
+    },
+    {
+      "family_id": "FAMILY_000019",
+      "roi_id": "ROI_000162",
+      "safe_slide_id": "CASE_000146"
+    },
+    {
+      "family_id": "FAMILY_000115",
+      "roi_id": "ROI_000163",
+      "safe_slide_id": "CASE_000093"
+    },
+    {
+      "family_id": "FAMILY_000130",
+      "roi_id": "ROI_000164",
+      "safe_slide_id": "CASE_000179"
+    },
+    {
+      "family_id": "FAMILY_000078",
+      "roi_id": "ROI_000165",
+      "safe_slide_id": "CASE_000128"
+    },
+    {
+      "family_id": "FAMILY_000109",
+      "roi_id": "ROI_000166",
+      "safe_slide_id": "CASE_000046"
+    },
+    {
+      "family_id": "FAMILY_000012",
+      "roi_id": "ROI_000167",
+      "safe_slide_id": "CASE_000158"
+    },
+    {
+      "family_id": "FAMILY_000046",
+      "roi_id": "ROI_000168",
+      "safe_slide_id": "CASE_000070"
+    },
+    {
+      "family_id": "FAMILY_000005",
+      "roi_id": "ROI_000169",
+      "safe_slide_id": "CASE_000124"
+    },
+    {
+      "family_id": "FAMILY_000001",
+      "roi_id": "ROI_000170",
+      "safe_slide_id": "CASE_000019"
+    },
+    {
+      "family_id": "FAMILY_000127",
+      "roi_id": "ROI_000171",
+      "safe_slide_id": "CASE_000125"
+    },
+    {
+      "family_id": "FAMILY_000113",
+      "roi_id": "ROI_000172",
+      "safe_slide_id": "CASE_000039"
+    },
+    {
+      "family_id": "FAMILY_000109",
+      "roi_id": "ROI_000173",
+      "safe_slide_id": "CASE_000098"
+    },
+    {
+      "family_id": "FAMILY_000143",
+      "roi_id": "ROI_000174",
+      "safe_slide_id": "CASE_000053"
+    },
+    {
+      "family_id": "FAMILY_000093",
+      "roi_id": "ROI_000175",
+      "safe_slide_id": "CASE_000080"
+    },
+    {
+      "family_id": "FAMILY_000137",
+      "roi_id": "ROI_000176",
+      "safe_slide_id": "CASE_000055"
+    },
+    {
+      "family_id": "FAMILY_000112",
+      "roi_id": "ROI_000177",
+      "safe_slide_id": "CASE_000105"
+    },
+    {
+      "family_id": "FAMILY_000096",
+      "roi_id": "ROI_000178",
+      "safe_slide_id": "CASE_000083"
+    },
+    {
+      "family_id": "FAMILY_000133",
+      "roi_id": "ROI_000179",
+      "safe_slide_id": "CASE_000089"
+    },
+    {
+      "family_id": "FAMILY_000038",
+      "roi_id": "ROI_000180",
+      "safe_slide_id": "CASE_000112"
+    }
+  ],
+  "schema_version": "architecture_grouping_manifest_v1"
+}

@@ -1,0 +1,8 @@
+{
+  "family_split_leakage": 0,
+  "fold_summary_sha256": "cd16ccf3947b2258e53f71ea2f9849565e8a324bb870c63a0545eaec805acd4e",
+  "folds_csv_sha256": "605968170f89a49a584dc88c44e426bb045bf3adc1d640a00b00079392c1f9c0",
+  "folds_json_sha256": "b237d14d67d24a4d7e7586bbb709daf9938e4b7a18747c7342fbefaff73558cb",
+  "schema_version": "architecture_split_hash_v1",
+  "split_sha256": "b2dde478d72bba586819d7086fd1959f27b0a9dc14b8dfffb221d777c8725b77"
+}

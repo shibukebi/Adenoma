@@ -1,0 +1,42 @@
+{
+  "matched_class_name_ensemble__primary": {
+    "CORRECT_BECAME_ERROR": 39,
+    "ERRORS_CORRECTED": 9,
+    "NET_CORRECT_GAIN": -30,
+    "SERRATED_TO_TUBULAR": 0,
+    "SERRATED_TO_VILLOUS": 39,
+    "TOTAL_CHANGED_PREDICTIONS": 88,
+    "TUBULAR_RESCUED": 0,
+    "VILLOUS_RESCUED": 9
+  },
+  "matched_class_name_ensemble__stress": {
+    "CORRECT_BECAME_ERROR": 2,
+    "ERRORS_CORRECTED": 1,
+    "NET_CORRECT_GAIN": -1,
+    "SERRATED_TO_TUBULAR": 0,
+    "SERRATED_TO_VILLOUS": 2,
+    "TOTAL_CHANGED_PREDICTIONS": 23,
+    "TUBULAR_RESCUED": 0,
+    "VILLOUS_RESCUED": 1
+  },
+  "morphology_rich__primary": {
+    "CORRECT_BECAME_ERROR": 11,
+    "ERRORS_CORRECTED": 24,
+    "NET_CORRECT_GAIN": 13,
+    "SERRATED_TO_TUBULAR": 7,
+    "SERRATED_TO_VILLOUS": 0,
+    "TOTAL_CHANGED_PREDICTIONS": 37,
+    "TUBULAR_RESCUED": 24,
+    "VILLOUS_RESCUED": 0
+  },
+  "morphology_rich__stress": {
+    "CORRECT_BECAME_ERROR": 1,
+    "ERRORS_CORRECTED": 3,
+    "NET_CORRECT_GAIN": 2,
+    "SERRATED_TO_TUBULAR": 1,
+    "SERRATED_TO_VILLOUS": 0,
+    "TOTAL_CHANGED_PREDICTIONS": 10,
+    "TUBULAR_RESCUED": 3,
+    "VILLOUS_RESCUED": 0
+  }
+}

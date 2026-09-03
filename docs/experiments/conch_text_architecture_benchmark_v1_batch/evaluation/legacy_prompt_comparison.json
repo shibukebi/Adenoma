@@ -1,0 +1,10 @@
+{
+  "available_prompt_sets": [
+    "single_class_name"
+  ],
+  "prediction_changes": {},
+  "skipped_prompt_sets": {
+    "matched_class_name_ensemble": "AGGREGATION_RULE_UNDEFINED",
+    "morphology_rich": "AGGREGATION_RULE_UNDEFINED"
+  }
+}

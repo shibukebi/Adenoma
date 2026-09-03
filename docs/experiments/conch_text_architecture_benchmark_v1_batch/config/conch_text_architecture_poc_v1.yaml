@@ -1,0 +1,75 @@
+schema_version: conch_text_architecture_poc_v1
+benchmark_version: conch_text_architecture_benchmark_v1
+stage_boundary:
+  model_evaluation_allowed_before_freeze: false
+  zero_shot_forbidden: true
+  linear_probe_forbidden: true
+  text_prior_training_forbidden: true
+  mil_training_forbidden: true
+  test_set_evaluation_forbidden: true
+paths:
+  benchmark_root: benchmark_v1
+  evaluation_root: evaluation_v1
+  prompt_config: config/architecture_prompts_v1.yaml
+recruitment:
+  target_wsi_per_stratum: 60
+  require_target_wsi_per_stratum: true
+  candidates_per_wsi: 1
+  minimum_mucosa_coverage: 0.6
+  require_complete_unclipped_bbox: true
+  recruitment_seed: 20260823
+  blinding_seed: 763187
+mucosa_backfill:
+  target_villous_wsi: 70
+  device: cuda:0
+  batch_size: 16
+  workers: 3
+  timeout_seconds: 240
+  base_magnification: 0.0
+  mpp: 0.0
+  min_tissue_coverage: 0.05
+  mask_downsample: 32.0
+  mucosa_threshold: 0.3
+  reuse_existing_valid_artifacts: true
+annotation:
+  workbook_name: annotation.xlsx
+  guideline_name: annotation_guideline.md
+  manifest_name: annotation_manifest.json
+  images_dir_name: images
+  contact_sheets_dir_name: contact_sheets
+  contact_sheet_columns: 5
+  contact_sheet_rows: 4
+freeze:
+  primary_classes:
+  - serrated
+  - tubular
+  - villous
+  primary_target_per_class: 40
+  freeze_seed: 20260823
+  grouping_preference: family_id
+  grouping_fallback: safe_slide_id
+  split_seed: 17
+  n_splits: 5
+  validation_fold_offset: 1
+  low_data_k:
+  - 5
+  - 10
+  - 20
+  low_data_seeds:
+  - 17
+  - 29
+  - 43
+  - 59
+  - 71
+  primary_endpoint: 3-class macro_f1
+  prompt_review_required: true
+model_arm_subset_contract:
+- single_class_name_zero_shot
+- matched_class_name_ensemble_zero_shot
+- morphology_rich_zero_shot
+- image_only_linear_probe
+- correct_text_prior_linear_probe
+- shuffled_text_prior_controls
+github_bundle_policy:
+  private_source_metadata_excluded: true
+  checkpoint_hash_only: true

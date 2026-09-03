@@ -1,0 +1,58 @@
+{
+  "benchmark_version": "conch_text_architecture_benchmark_v1",
+  "class_truncation": "SHA256(freeze_seed + roi_id)",
+  "freeze_seed": 20260823,
+  "low_data": {
+    "all_definition": "all available training ROIs of the current outer fold",
+    "k": [
+      5,
+      10,
+      20
+    ],
+    "seeds": [
+      17,
+      29,
+      43,
+      59,
+      71
+    ]
+  },
+  "model_evaluation_started": false,
+  "model_scores_used_for_selection": false,
+  "primary_eligibility": {
+    "architecture_label": [
+      "serrated",
+      "tubular",
+      "villous"
+    ],
+    "evaluable": "yes",
+    "expert_confidence": "high",
+    "pure_or_mixed": "pure"
+  },
+  "primary_endpoint": "3-class macro_f1",
+  "primary_independence": "one primary ROI per safe family; fallback safe slide only when family unavailable",
+  "primary_target_per_class": 40,
+  "revision_policy": "create benchmark_v2; never overwrite benchmark_v1",
+  "schema_version": "architecture_freeze_policy_v1",
+  "selection_fields": [
+    "evaluable",
+    "pure_or_mixed",
+    "architecture_label",
+    "expert_confidence",
+    "family_id",
+    "candidate_generation_order",
+    "roi_id"
+  ],
+  "split": {
+    "n_splits": 5,
+    "random_state": 17,
+    "shuffle": true,
+    "strategy": "StratifiedGroupKFold",
+    "validation_fold_offset": 1
+  },
+  "stress_excluded_from_primary_macro_f1": true,
+  "within_group_selection": [
+    "candidate_generation_order",
+    "deterministic_roi_id_hash"
+  ]
+}

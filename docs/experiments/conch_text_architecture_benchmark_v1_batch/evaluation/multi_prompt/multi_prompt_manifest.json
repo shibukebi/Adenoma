@@ -1,0 +1,34 @@
+{
+  "aggregation_rule": "per-prompt L2 normalize -> same-class arithmetic mean -> class-prototype L2 normalize -> cosine argmax",
+  "annotation_sha256": "30f712a103cf77ac1cc68c25e504039bc8a5d0bb1027511b3d52ba9f0e90d68f",
+  "benchmark_version": "conch_text_architecture_benchmark_v1",
+  "checkpoint_sha256": "40a9644b9ba0e83a74576e0a5e5f7313599fa9c9cdaf3c20f8a3e271b0e9ae7c",
+  "family_split_leakage": 0,
+  "label_leakage": 0,
+  "label_tuning": false,
+  "low_data_k10_executed": false,
+  "low_data_k20_executed": false,
+  "low_data_k5_executed": false,
+  "model_evaluation_started": true,
+  "model_output_leakage": 0,
+  "multi_prompt_evaluation_complete": true,
+  "prediction_transition_sha256": "fc2bce44604d606f4d122310d6b95b1eab0f90724fa1810c76f95af47ecce2d0",
+  "primary_manifest_sha256": "e034e3342bd564dd69e75650e11f110942e40e5fab78ee167c1b7d1e61c0bd33",
+  "primary_n": 94,
+  "prompt_set_comparison_sha256": "65c4048127300d10efec32134918fbb4fc7502a67bf244278a764e3e40779bcf",
+  "prompt_sets_executed": [
+    "single_class_name",
+    "matched_class_name_ensemble",
+    "morphology_rich"
+  ],
+  "prompt_sha256": "59dde335493321b6a75f23e2550b47e6241fef40e709813f8a718be903120ef4",
+  "raw_prediction_files_sha256": {
+    "matched_class_name_ensemble_primary_predictions.jsonl": "a8a753da1ac220ddf69ff3c509e20c1171d52ac7f9469185eef87f41330e636f",
+    "matched_class_name_ensemble_stress_predictions.jsonl": "6abc2ce46f26b4b7a40598bc55648e3a8266a9e59dbb1fd7d82d131b704447c8",
+    "morphology_rich_primary_predictions.jsonl": "99468bd79c824c47554e7803adb807b64ed09d15cf1d7b0a9ebb241fb5eacc88",
+    "morphology_rich_stress_predictions.jsonl": "34165ee9841fd2011cc6b24ef786cefb0bcbb2a277f16fb552aef54ef7c8e1d3"
+  },
+  "schema_version": "conch_text_architecture_multi_prompt_evaluation_v1",
+  "split_sha256": "b2dde478d72bba586819d7086fd1959f27b0a9dc14b8dfffb221d777c8725b77",
+  "stress_n": 26
+}

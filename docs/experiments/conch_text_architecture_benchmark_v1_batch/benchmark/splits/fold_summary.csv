@@ -1,0 +1,16 @@
+fold,architecture_label,roi_count,family_count
+0,serrated,4,4
+0,tubular,10,10
+0,villous,5,5
+1,serrated,12,12
+1,tubular,5,5
+1,villous,2,2
+2,serrated,7,7
+2,tubular,10,10
+2,villous,1,1
+3,serrated,7,7
+3,tubular,8,8
+3,villous,4,4
+4,serrated,10,10
+4,tubular,7,7
+4,villous,2,2

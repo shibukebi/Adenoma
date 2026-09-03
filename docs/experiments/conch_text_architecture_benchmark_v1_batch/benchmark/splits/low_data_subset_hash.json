@@ -1,0 +1,10 @@
+{
+  "all_training_ready": true,
+  "k_ready": {
+    "10": false,
+    "20": false,
+    "5": true
+  },
+  "schema_version": "architecture_low_data_subset_hash_v1",
+  "sha256": "8faf7453e4a839f2193be76a4e97988e608623e72f1ef0f83b5032d7fe9a4633"
+}

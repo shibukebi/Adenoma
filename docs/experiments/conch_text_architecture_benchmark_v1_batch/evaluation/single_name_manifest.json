@@ -1,0 +1,39 @@
+{
+  "annotation_sha256": "30f712a103cf77ac1cc68c25e504039bc8a5d0bb1027511b3d52ba9f0e90d68f",
+  "benchmark_freeze_manifest_sha256": "d7ddefcd05b6682a5bda8ad4d123536baed65759f3209bcfef4273e3ffcc6144",
+  "benchmark_version": "conch_text_architecture_benchmark_v1",
+  "bundle_path_policy": "local absolute paths omitted",
+  "checkpoint_path": "<private checkpoint path omitted from GitHub bundle>",
+  "checkpoint_sha256": "40a9644b9ba0e83a74576e0a5e5f7313599fa9c9cdaf3c20f8a3e271b0e9ae7c",
+  "cuda_visible_devices": "3",
+  "device": "cuda:0",
+  "evaluation_complete": true,
+  "evaluation_seconds": 4.323,
+  "evaluation_sets": {
+    "primary": 94,
+    "stress": 26
+  },
+  "evaluation_started": true,
+  "evaluation_timestamp": "2026-08-31T21:03:52+0800",
+  "family_split_leakage": 0,
+  "label_leakage": 0,
+  "low_data_k10_executed": false,
+  "low_data_k20_executed": false,
+  "low_data_k5_executed": false,
+  "low_data_k5_skipped": "NO_FORMAL_K5_ZERO_SHOT_PROTOCOL",
+  "metrics_sha256": "2b862ac2bcb7783cc3e443fdc5ceb78d19537e464cba3a05637482504e4571f9",
+  "model_evaluation_started": true,
+  "model_output_leakage": 0,
+  "primary_manifest_sha256": "e034e3342bd564dd69e75650e11f110942e40e5fab78ee167c1b7d1e61c0bd33",
+  "prompt_sets_executed": [
+    "single_class_name"
+  ],
+  "prompt_sets_skipped": {
+    "matched_class_name_ensemble": "AGGREGATION_RULE_UNDEFINED",
+    "morphology_rich": "AGGREGATION_RULE_UNDEFINED"
+  },
+  "prompt_sha256": "59dde335493321b6a75f23e2550b47e6241fef40e709813f8a718be903120ef4",
+  "raw_predictions_sha256": "ed30773e3940d155dbc195411703896ba7b8669f59d4843b8c83abb438b88eda",
+  "schema_version": "conch_text_architecture_zero_shot_evaluation_v1",
+  "split_sha256": "b2dde478d72bba586819d7086fd1959f27b0a9dc14b8dfffb221d777c8725b77"
+}
