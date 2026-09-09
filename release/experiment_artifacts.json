@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-09-09T03:31:55.051333+00:00",
+  "repository": "adenoma",
+  "roots": [
+    {
+      "root_name": "5fold_11class",
+      "status": "missing_root"
+    },
+    {
+      "root_name": "fold5_hp+yx",
+      "status": "missing_root"
+    }
+  ],
+  "files": [],
+  "notes": [
+    "WSI files and feature tensors are intentionally excluded.",
+    "A checkpoint is copied only when its filename passes the conservative checkpoint filter."
+  ]
+}

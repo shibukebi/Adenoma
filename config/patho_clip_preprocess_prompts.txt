@@ -1,0 +1,8 @@
+An H&E pathology patch with clear adenomatous glandular epithelium.
+An H&E pathology patch containing diagnostically useful colorectal adenoma tissue.
+An H&E pathology patch dominated by normal background or whitespace.
+An H&E pathology patch with very little tissue content.
+An H&E pathology patch with blur or out-of-focus artifact.
+An H&E pathology patch with tissue fold artifact.
+An H&E pathology patch dominated by mucus, debris, or blood rather than epithelium.
+An H&E pathology patch with strong staining artifact or poor quality.

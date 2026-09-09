@@ -1,0 +1,18 @@
+{
+  "task_name": "adenoma_11class",
+  "num_classes": 11,
+  "model_class_order": [
+    {"id": 0, "name": "SSL", "full_name": "ssl"},
+    {"id": 1, "name": "HP", "full_name": "hp"},
+    {"id": 2, "name": "TSA", "full_name": "TSA"},
+    {"id": 3, "name": "USA", "full_name": "USA"},
+    {"id": 4, "name": "TA", "full_name": "TA"},
+    {"id": 5, "name": "TVA", "full_name": "TVA"},
+    {"id": 6, "name": "IP", "full_name": "IP"},
+    {"id": 7, "name": "SSLD", "full_name": "ssl with highgrade dysplasia"},
+    {"id": 8, "name": "TSAD", "full_name": "TSA with highgrade dysplasia"},
+    {"id": 9, "name": "TAD", "full_name": "TA with highgrade dysplasia"},
+    {"id": 10, "name": "TVAD", "full_name": "TVA with highgrade dysplasia"}
+  ],
+  "report_display_order": ["IP", "HP", "SSL", "SSLD", "TSA", "TSAD", "USA", "TA", "TAD", "TVA", "TVAD"]
+}

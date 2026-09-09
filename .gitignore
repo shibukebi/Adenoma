@@ -20,3 +20,70 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# Project outputs
+logs/
+runs/
+outputs/
+workdirs/
+
+# Generated datasets, manifests, caches and local environments
+data/
+challenge_review/data/
+challenge_review/cache/
+challenge_review/artifacts/
+challenge_review/.venv/
+challenge_review/*.log
+challenge_review/*.pid
+**/__pycache__/
+**/.pytest_cache/
+**/.venv/
+**/venv/
+**/node_modules/
+**/datasets/
+**/dataset_csv/
+**/splits/
+**/results/
+**/runs/
+**/outputs/
+**/work/
+**/workdirs/
+
+# Raw WSI and large feature artifacts
+*.svs
+*.isyntax
+*.ndpi
+*.mrxs
+*.scn
+*.tif
+*.tiff
+*.h5
+*.hdf5
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors
+*.zip
+
+# Dedicated release weight area is intentionally allowlisted. Add weights there
+# only after verifying that they are model checkpoints, not feature tensors.
+!release/
+!release/weights/
+!release/weights/**
+
+# Upstream repositories are kept as local working copies and referenced by
+# commit in release/DEPENDENCIES.md; do not embed their nested Git metadata.
+/CLAM/
+/Patch-GCN/
+
+# Keep the lightweight benchmark definition, summaries and verified release
+# checkpoints even though generic split/result/weight patterns are ignored.
+!baseline/
+!baseline/adenoma_11class/
+!baseline/adenoma_11class/splits/
+!baseline/adenoma_11class/splits/**
+!baseline/adenoma_11class/results/
+!baseline/adenoma_11class/results/**
+!baseline/adenoma_11class/weights/
+!baseline/adenoma_11class/weights/**

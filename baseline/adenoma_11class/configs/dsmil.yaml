@@ -1,0 +1,13 @@
+model: DSMIL
+entrypoint: scripts/train_dsmil_single_11class.py
+features: [2p5x, 5x, 10x, 20x]
+max_epochs: 100
+learning_rate: 0.0001
+weight_decay: 0.00001
+dropout: 0.25
+embed_dim: 1024
+hidden_dim: 512
+attention_dim: 128
+weighted_sampling: true
+early_stopping: true
+checkpoint_pattern: s_{fold}_checkpoint.pt

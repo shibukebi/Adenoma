@@ -1,0 +1,47 @@
+General:
+  comment: adenoma_yx_route_a_20x
+  seed: 2023
+  fp16: false
+  amp_level: O2
+  precision: 32
+  multi_gpu_mode: dp
+  gpus: [0]
+  epochs: 100
+  grad_acc: 1
+  frozen_bn: false
+  patience: 20
+  server: train
+  log_path: /data15/data15_5/yuexin2/adenoma/outputs/mag_gltrans/logs/adenoma_yx_20X
+
+Data:
+  data_shuffle: false
+  train_dataloader:
+    batch_size: 1
+    num_workers: 0
+  test_dataloader:
+    batch_size: 1
+    num_workers: 0
+  data_path:
+    adenoma_yx:
+      20X: /data15/data15_5/yuexin2/adenoma/outputs/mag_gltrans_npy
+  name: COMA
+  n_classes: 2
+  in_feat: 1024
+
+Optimizer:
+  opt: lookahead_radam
+  lr: 0.0001
+  opt_eps: null
+  opt_betas: null
+  momentum: null
+  weight_decay: 0.00001
+
+max_patch_num: 20480
+
+Loss:
+  base_loss: CrossEntropyLoss
+
+fold_dir: /data15/data15_5/yuexin2/adenoma/data/mag_gltrans_folds
+
+label_path:
+  adenoma_yx: /data15/data15_5/yuexin2/adenoma/data/adenoma_yx_labels.csv

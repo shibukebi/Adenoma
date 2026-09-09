@@ -1,0 +1,53 @@
+name: adenoma_11class_5fold
+version: 1.0.0
+task: multiclass_classification
+num_classes: 11
+feature_encoder: MahmoodLab/UNI
+folds: [0, 1, 2, 3, 4]
+seed: 2023
+
+class_id_order:
+  - SSL
+  - HP
+  - TSA
+  - USA
+  - TA
+  - TVA
+  - IP
+  - SSLD
+  - TSAD
+  - TAD
+  - TVAD
+
+report_display_order:
+  - IP
+  - HP
+  - SSL
+  - SSLD
+  - TSA
+  - TSAD
+  - USA
+  - TA
+  - TAD
+  - TVA
+  - TVAD
+
+experiments:
+  CLAM-SB: [2p5x, 5x, 10x, 20x]
+  TransMIL: [2p5x, 5x, 10x, 20x]
+  DSMIL: [2p5x, 5x, 10x, 20x]
+  MIST: [2p5x_5x, 5x_10x]
+
+metrics:
+  - accuracy
+  - macro_f1
+  - weighted_f1
+  - auc_ovr_macro
+  - auc_ovr_weighted
+
+checkpoint_policy:
+  selection_split: validation
+  test_evaluation: once_per_fold
+  legacy_fifth_fold:
+    canonical_fold: 4
+    historical_name: fold5

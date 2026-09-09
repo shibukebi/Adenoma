@@ -1,0 +1,18 @@
+task_name: ssl_vs_others_2p5x_uni_transmil_official
+fold: 5
+data:
+  manifest_csv: /data15/data15_5/yuexin2/adenoma/transmil_official/manifests/adenoma_ssl_2p5x_fold5.csv
+  feature_dir: /data15/data15_5/yuexin2/adenoma/outputs/adenoma_yx_features_2p5x_uni/pt_files
+model:
+  embed_dim: 1024
+  model_dim: 512
+  n_classes: 2
+  dropout: 0.25
+training:
+  max_epochs: 100
+  seed: 2023
+  lr: 0.0001
+  weight_decay: 0.00001
+  weighted_sample: true
+  early_stopping: true
+results_dir: /data15/data15_5/yuexin2/adenoma/outputs/transmil_official_ssl_vs_others_2p5x_uni/fold-5

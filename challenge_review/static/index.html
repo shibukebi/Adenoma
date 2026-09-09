@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Challenge Set WSI Review</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <section id="login-view" class="login-view">
+    <form id="login-form" class="login-panel">
+      <div class="brand-mark">CR</div>
+      <h1>Challenge Set Review</h1>
+      <label>用户名<input id="login-username" autocomplete="username" required></label>
+      <label>密码<input id="login-password" type="password" autocomplete="current-password" required></label>
+      <p id="login-error" class="form-error" aria-live="polite"></p>
+      <button class="primary-button" type="submit"><i data-lucide="log-in"></i><span>登录</span></button>
+    </form>
+  </section>
+
+  <div id="app-view" class="app-view" hidden>
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark small">CR</span><strong>Challenge Review</strong></div>
+      <div class="progress-group">
+        <span id="progress-text">0 / 3153</span>
+        <div class="progress-track"><span id="progress-bar"></span></div>
+      </div>
+      <div class="topbar-actions">
+        <button id="previous-slide" class="icon-button" title="上一张"><i data-lucide="chevron-left"></i></button>
+        <button id="next-slide" class="icon-button" title="下一张"><i data-lucide="chevron-right"></i></button>
+        <span class="toolbar-separator"></span>
+        <button id="zoom-out" class="icon-button" title="缩小"><i data-lucide="zoom-out"></i></button>
+        <button id="zoom-home" class="icon-button" title="回到全图"><i data-lucide="scan"></i></button>
+        <button id="zoom-in" class="icon-button" title="放大"><i data-lucide="zoom-in"></i></button>
+        <button id="magnifier-toggle" class="icon-button" title="局部高倍镜" aria-pressed="false"><i data-lucide="microscope"></i></button>
+        <div id="magnifier-controls" class="toolbar-segmented" hidden aria-label="高倍镜倍率">
+          <button type="button" data-magnification="10">10×</button>
+          <button type="button" data-magnification="20" class="active">20×</button>
+          <button type="button" data-magnification="40">40×</button>
+        </div>
+        <button id="roi-draw-toggle" class="icon-button" title="绘制关键证据 ROI" aria-pressed="false"><i data-lucide="square-dashed-mouse-pointer"></i></button>
+        <button id="viewer-fullscreen" class="icon-button" title="全屏"><i data-lucide="maximize"></i></button>
+        <span class="toolbar-separator"></span>
+        <button id="export-menu-button" class="text-button"><i data-lucide="download"></i><span>导出</span></button>
+        <div id="export-menu" class="popover" hidden>
+          <a href="/api/exports/reviews.csv">审核长表</a>
+          <a href="/api/exports/consensus.csv">审核汇总</a>
+          <a href="/api/exports/manifest.csv?min_reviews=2">修订 Manifest</a>
+          <a href="/api/exports/challenge-case-reviews.csv">Challenge Case Review</a>
+          <a href="/api/exports/challenge-rois.csv">Key ROI CSV</a>
+          <a href="/api/exports/challenge-rois.geojson">Key ROI GeoJSON</a>
+          <a href="/api/exports/challenge-resolutions.csv">Challenge Resolution</a>
+        </div>
+        <button id="admin-button" class="icon-button" title="用户管理" hidden><i data-lucide="users"></i></button>
+        <button id="account-button" class="account-button"><span id="account-name"></span><i data-lucide="chevron-down"></i></button>
+        <div id="account-menu" class="popover account-menu" hidden>
+          <button id="logout-button"><i data-lucide="log-out"></i><span>退出登录</span></button>
+        </div>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <aside class="queue-pane">
+        <div class="pane-heading">
+          <div><strong>审核队列</strong><span id="queue-total">0</span></div>
+          <button id="clear-filters" class="icon-button compact" title="清除筛选"><i data-lucide="filter-x"></i></button>
+        </div>
+        <div class="filters">
+          <div class="search-field"><i data-lucide="search"></i><input id="filter-search" placeholder="Slide ID"></div>
+          <label class="toggle-row"><input id="filter-core" type="checkbox"><span>仅 14/14 均错</span></label>
+          <label>Challenge resolution<select id="filter-resolution"><option value="">全部</option><option value="unreviewed">未提交</option><option value="retained_challenge">确认保留</option><option value="pending_adjudication">标签问题待仲裁</option><option value="eligible_for_exclusion">可排除标签错误</option><option value="unresolved">尚未解决</option></select></label>
+          <div class="filter-grid">
+            <label>原标签<select id="filter-label"><option value="">全部</option></select></label>
+            <label>共识预测<select id="filter-consensus"><option value="">全部</option></select></label>
+            <label>来源<select id="filter-source"><option value="">全部</option><option value="hp">hp</option><option value="yx">yx</option></select></label>
+            <label>Fold<select id="filter-fold"><option value="">全部</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+            <label>审核状态<select id="filter-status"><option value="">全部</option><option value="unreviewed">未审核</option><option value="completed">已完成</option><option value="questionable">存疑</option></select></label>
+            <label>一致性<select id="filter-consistency"><option value="">全部</option><option value="14">14/14</option><option value="12">≥12/14</option><option value="10">≥10/14</option></select></label>
+          </div>
+          <label>排序<select id="filter-sort"><option value="consensus_desc">一致性：高到低</option><option value="consensus_asc">一致性：低到高</option><option value="wrong_desc">误判配置数</option><option value="confidence_desc">错误置信度</option><option value="rank">困难度排名</option><option value="slide_id">Slide ID</option></select></label>
+        </div>
+        <div id="slide-list" class="slide-list" aria-live="polite"></div>
+        <div class="pagination">
+          <button id="page-previous" class="icon-button compact" title="上一页"><i data-lucide="chevron-left"></i></button>
+          <span id="page-text">1 / 1</span>
+          <button id="page-next" class="icon-button compact" title="下一页"><i data-lucide="chevron-right"></i></button>
+        </div>
+      </aside>
+
+      <section id="viewer-pane" class="viewer-pane">
+        <div id="viewer" class="viewer">
+          <div id="magnifier-panel" class="magnifier-panel inactive" aria-hidden="true">
+            <div id="magnifier-viewer" class="magnifier-viewer"></div>
+            <div id="magnifier-loading" class="magnifier-loading"><span class="spinner small"></span></div>
+            <span id="magnifier-badge" class="magnifier-badge">20×</span>
+          </div>
+        </div>
+        <div id="viewer-empty" class="viewer-state"><i data-lucide="image"></i><span>选择切片</span></div>
+        <div id="viewer-loading" class="viewer-state" hidden><span class="spinner"></span><span>正在读取 WSI</span></div>
+        <div id="viewer-error" class="viewer-state error" hidden><i data-lucide="image-off"></i><span></span></div>
+        <div id="zoom-indicator" class="zoom-indicator" hidden></div>
+      </section>
+
+      <aside class="review-pane">
+        <div id="no-selection" class="empty-review">未选择切片</div>
+        <div id="review-content" hidden>
+          <section class="slide-summary">
+            <div class="summary-title"><h2 id="slide-id"></h2><span id="review-status-badge" class="status-badge"></span></div>
+            <dl class="metadata-grid">
+              <div><dt>原标签</dt><dd id="original-label"></dd></div>
+              <div><dt>模型共识</dt><dd id="consensus-label"></dd></div>
+              <div><dt>一致性</dt><dd id="consensus-count"></dd></div>
+              <div><dt>来源 / Fold</dt><dd id="source-fold"></dd></div>
+              <div><dt>病理类型</dt><dd id="pathology-type"></dd></div>
+              <div><dt>WSI</dt><dd id="wsi-status"></dd></div>
+            </dl>
+          </section>
+
+          <section class="prediction-section">
+            <div class="section-heading"><strong>模型预测</strong><span>14 configurations</span></div>
+            <div class="prediction-table-wrap">
+              <table class="prediction-table"><thead><tr><th>模型</th><th>倍率</th><th>第一候选</th><th>第二候选</th></tr></thead><tbody id="prediction-body"></tbody></table>
+            </div>
+          </section>
+
+          <form id="challenge-review-form" class="challenge-review-form" hidden>
+            <div class="section-heading"><strong>Challenge Case Review</strong><span id="challenge-save-state">草稿</span></div>
+            <div id="challenge-lock-banner" class="lock-banner" hidden></div>
+            <div class="field-pair">
+              <label>Final lesion diagnosis<select id="challenge-lesion"></select></label>
+              <label>HGD status<select id="challenge-hgd"></select></label>
+            </div>
+            <label>Label action<select id="challenge-label-action"></select></label>
+            <label>Challenge disposition<select id="challenge-disposition"></select></label>
+            <div id="challenge-disposition-hint" class="disposition-hint"></div>
+            <label>Primary challenge<select id="challenge-primary"></select></label>
+            <label id="challenge-primary-other-label" hidden>Other differential<input id="challenge-primary-other" maxlength="500"></label>
+            <fieldset><legend>Difficulty modifiers</legend><div id="challenge-modifiers" class="flag-grid"></div></fieldset>
+            <label>Difficulty note<textarea id="challenge-note" rows="3" maxlength="5000"></textarea></label>
+            <fieldset><legend>Expert confidence</legend><div id="challenge-confidence" class="segmented five"></div></fieldset>
+            <label class="toggle-row"><input id="challenge-no-roi" type="checkbox"><span>No localizable key evidence</span></label>
+            <div id="no-roi-fields" class="field-pair" hidden>
+              <label>Reason<select id="challenge-no-roi-reason"></select></label>
+              <label id="challenge-no-roi-other-label" hidden>Other reason<input id="challenge-no-roi-other" maxlength="500"></label>
+            </div>
+
+            <section class="key-evidence-section">
+              <div class="section-heading"><strong>Key Evidence ROI</strong><span id="roi-count">0 / 3</span></div>
+              <div id="roi-empty" class="roi-empty">使用工具栏中的矩形工具标记关键鉴别证据区域</div>
+              <div id="roi-editors" class="roi-editors"></div>
+            </section>
+            <div id="challenge-peer-summary" class="peer-summary" hidden></div>
+            <div class="challenge-actions">
+              <button id="challenge-lock-button" class="secondary-button" type="button" hidden></button>
+              <button id="challenge-submit" class="primary-button" type="submit"><i data-lucide="send"></i><span>提交 Challenge Review</span></button>
+            </div>
+          </form>
+          <section id="challenge-ineligible" class="challenge-ineligible" hidden>关键证据 ROI 首轮仅对 14/14 配置均误判的 193 张病例开放。</section>
+
+          <form id="review-form" class="review-form">
+            <div class="section-heading"><strong>重新审核</strong><span id="saved-at"></span></div>
+            <label>修订标签<select id="review-label" required></select></label>
+            <fieldset><legend>审核状态</legend><div class="segmented"><label><input type="radio" name="review-status" value="completed" checked><span>已完成</span></label><label><input type="radio" name="review-status" value="questionable"><span>存疑</span></label></div></fieldset>
+            <fieldset><legend>诊断信心</legend><div class="segmented three"><label><input type="radio" name="review-confidence" value="low"><span>低</span></label><label><input type="radio" name="review-confidence" value="medium" checked><span>中</span></label><label><input type="radio" name="review-confidence" value="high"><span>高</span></label></div></fieldset>
+            <fieldset><legend>质量与争议</legend><div class="flag-grid">
+              <label><input type="checkbox" name="quality-flag" value="poor_quality"><span>图像质量差</span></label>
+              <label><input type="checkbox" name="quality-flag" value="tissue_fold"><span>组织折叠</span></label>
+              <label><input type="checkbox" name="quality-flag" value="staining_issue"><span>染色异常</span></label>
+              <label><input type="checkbox" name="quality-flag" value="incomplete_tissue"><span>组织不完整</span></label>
+              <label><input type="checkbox" name="quality-flag" value="label_dispute"><span>标签争议</span></label>
+            </div></fieldset>
+            <label>备注<textarea id="review-notes" rows="3" maxlength="5000"></textarea></label>
+            <div id="peer-summary" class="peer-summary" hidden></div>
+            <button class="primary-button save-button" type="submit"><i data-lucide="save"></i><span>保存并进入下一张</span></button>
+          </form>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <dialog id="admin-dialog" class="admin-dialog">
+    <div class="dialog-heading"><h2>用户管理</h2><button id="admin-close" class="icon-button" title="关闭"><i data-lucide="x"></i></button></div>
+    <form id="create-user-form" class="create-user-form">
+      <label>用户名<input id="new-username" required></label>
+      <label>显示名<input id="new-display-name" required></label>
+      <label>密码<input id="new-password" type="password" minlength="10" required></label>
+      <label>角色<select id="new-role"><option value="reviewer">审核者</option><option value="admin">管理员</option></select></label>
+      <button class="primary-button" type="submit"><i data-lucide="user-plus"></i><span>创建用户</span></button>
+    </form>
+    <table class="user-table"><thead><tr><th>用户名</th><th>显示名</th><th>角色</th><th>状态</th><th>操作</th></tr></thead><tbody id="user-body"></tbody></table>
+  </dialog>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="/static/vendor/openseadragon.min.js"></script>
+  <script src="/static/vendor/lucide.min.js"></script>
+  <script type="module" src="/static/app.js"></script>
+</body>
+</html>

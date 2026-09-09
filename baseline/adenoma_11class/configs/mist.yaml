@@ -1,0 +1,9 @@
+model: MIST
+entrypoint: third_party/mist/train_ade.py
+features: [2p5x_5x, 5x_10x]
+max_epochs: 200
+learning_rate: 0.0002
+weight_decay: 0.005
+feature_dim: 5120
+num_classes: 11
+checkpoint_pattern: 1.pth

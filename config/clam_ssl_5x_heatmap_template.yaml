@@ -1,0 +1,50 @@
+exp_arguments:
+  n_classes: 2
+  batch_size: 256
+
+data_arguments:
+  slide_ext: .svs
+  label_dict:
+    others: 0
+    SSL: 1
+
+patching_arguments:
+  patch_size: 256
+  overlap: 0.5
+  patch_level: 2
+  custom_downsample: 1
+
+encoder_arguments:
+  model_name: uni_v1
+  target_img_size: 224
+
+model_arguments:
+  model_type: clam_sb
+  model_size: small
+  drop_out: 0.25
+  embed_dim: 1024
+  initiate_fn: initiate_model
+
+heatmap_arguments:
+  vis_level: 1
+  alpha: 0.4
+  blank_canvas: false
+  save_orig: true
+  save_ext: jpg
+  use_ref_scores: true
+  blur: false
+  use_center_shift: true
+  use_roi: false
+  calc_heatmap: true
+  binarize: false
+  binary_thresh: -1
+  custom_downsample: 1
+  cmap: jet
+
+sample_arguments:
+  samples:
+    - name: topk_high_attention
+      sample: true
+      seed: 1
+      k: 15
+      mode: topk

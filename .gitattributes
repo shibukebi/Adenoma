@@ -1,0 +1,8 @@
+release/weights/**/*.pt filter=lfs diff=lfs merge=lfs -text
+release/weights/**/*.pth filter=lfs diff=lfs merge=lfs -text
+release/weights/**/*.ckpt filter=lfs diff=lfs merge=lfs -text
+release/weights/**/*.bin filter=lfs diff=lfs merge=lfs -text
+release/weights/**/*.safetensors filter=lfs diff=lfs merge=lfs -text
+baseline/adenoma_11class/weights/**/*.pt filter=lfs diff=lfs merge=lfs -text
+baseline/adenoma_11class/weights/**/*.pth filter=lfs diff=lfs merge=lfs -text
+baseline/adenoma_11class/weights/**/*.ckpt filter=lfs diff=lfs merge=lfs -text
